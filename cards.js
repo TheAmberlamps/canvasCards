@@ -15,16 +15,28 @@ function resizeCanvas() {
 // Initial call to set the canvas size when the page loads
 resizeCanvas();
 
-let cardImg = new Image();
-cardImg.addEventListener("load", () => {
-  console.log(cardImg.height);
-  console.log(cardImg.width);
-  ctx.drawImage(
-    cardImg,
-    canvas.width / 2 - cardImg.width / 2,
-    canvas.height / 2 - cardImg.height / 2
-  );
-});
+// video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
+
+let newCard = new Image()
+newCard.addEventListener("load", () => {
+  var valObj = {
+    xVal: 0,
+    rotateVal: 0
+  }
+  gsap.to(valObj, {
+    rotateVal: 90,
+    xVal: canvas.width / 2,
+    duration: 1
+  })
+  gsap.ticker.add(function() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.save()
+    //ctx.translate(newCard.x - newCard.width / 2, newCard.y - newCard.height / 2)
+    //ctx.rotate(valObj.rotateVal * Math.PI / 180)
+    ctx.drawImage(newCard, valObj.xVal - (newCard.width / 2), (canvas.height / 2) - newCard.height / 2)
+    ctx.restore()
+  })
+})
 
 let decks = 1;
 
@@ -51,6 +63,6 @@ fetch(newDeck)
       })
       .then((data) => {
         console.log(data.cards[0]);
-        cardImg.src = data.cards[0].image;
+        newCard.src = data.cards[0].image
       });
   });
