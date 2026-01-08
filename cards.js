@@ -17,26 +17,37 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
-let newCard = new Image()
+function randRotInRads() {
+  if (Math.random() > 0.5) {
+    return (Math.floor(Math.random() * 360) * Math.PI) / 180;
+  } else {
+    return -(Math.floor(Math.random() * 360) * Math.PI) / 180;
+  }
+}
+
+let newCard = new Image();
 newCard.addEventListener("load", () => {
   var valObj = {
     xVal: 0,
-    rotateVal: 0
-  }
+    yVal: canvas.height,
+    rotateVal: 0,
+  };
   gsap.to(valObj, {
-    rotateVal: 90,
+    rotateVal: randRotInRads(),
     xVal: canvas.width / 2,
-    duration: 1
-  })
-  gsap.ticker.add(function() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.save()
-    //ctx.translate(newCard.x - newCard.width / 2, newCard.y - newCard.height / 2)
-    //ctx.rotate(valObj.rotateVal * Math.PI / 180)
-    ctx.drawImage(newCard, valObj.xVal - (newCard.width / 2), (canvas.height / 2) - newCard.height / 2)
-    ctx.restore()
-  })
-})
+    yVal: canvas.height / 2,
+    ease: "power4.out",
+    duration: 1,
+  });
+  gsap.ticker.add(function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(valObj.xVal, valObj.yVal);
+    ctx.rotate(valObj.rotateVal);
+    ctx.drawImage(newCard, -newCard.width / 2, -newCard.height / 2);
+    ctx.restore();
+  });
+});
 
 let decks = 1;
 
@@ -63,6 +74,6 @@ fetch(newDeck)
       })
       .then((data) => {
         console.log(data.cards[0]);
-        newCard.src = data.cards[0].image
+        newCard.src = data.cards[0].image;
       });
   });
