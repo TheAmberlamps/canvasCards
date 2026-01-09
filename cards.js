@@ -25,55 +25,71 @@ function randRotInRads() {
   }
 }
 
-let newCard = new Image();
-newCard.addEventListener("load", () => {
-  var valObj = {
+let cardArr = []
+
+async function cardMaker(deck) {
+  let newCard = new Image();
+  newCard.src = await drawCards(deck)
+  newCard.addEventListener("load", () => {
+  newCard.valObj = {
     xVal: 0,
     yVal: canvas.height,
     rotateVal: 0,
   };
-  gsap.to(valObj, {
+  gsap.to(newCard.valObj, {
     rotateVal: randRotInRads(),
     xVal: canvas.width / 2,
     yVal: canvas.height / 2,
     ease: "power4.out",
     duration: 1,
   });
+  // this should be its own drawing function that clears the screen, loops through all cardArr objects and draws them based on their internal values
+  // commiting changes now before experimenting further, lots of progress made so far
   gsap.ticker.add(function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
-    ctx.translate(valObj.xVal, valObj.yVal);
-    ctx.rotate(valObj.rotateVal);
+    ctx.translate(newCard.valObj.xVal, newCard.valObj.yVal);
+    ctx.rotate(newCard.valObj.rotateVal);
     ctx.drawImage(newCard, -newCard.width / 2, -newCard.height / 2);
     ctx.restore();
   });
 });
+}
 
 let decks = 1;
 
-let newDeck = `https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=${decks}`;
+async function genDeck (decks) {
+  let deckUrl = `https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=${decks}`;
+  
+  try {
+    let response = await fetch(deckUrl);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    let data = await response.json();
+    return data.deck_id
+  } catch (error) {
+    console.log("Fetch failed: ", error)
+    return null
+  }
+}
 
-fetch(newDeck)
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json(); // Or .text(), .blob(), etc., depending on expected response type
-  })
-  .then((data) => {
-    console.log(data);
-    console.log(data.deck_id);
-    let deckId = data.deck_id;
-    let drawCard = `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`;
-    fetch(drawCard)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data.cards[0]);
-        newCard.src = data.cards[0].image;
-      });
-  });
+let newDeck = await genDeck(decks)
+
+console.log(newDeck)
+
+async function drawCards(newDeck) {
+  let drawCard = `https://deckofcardsapi.com/api/deck/${newDeck}/draw/?count=1`;
+  try {
+    let response = await fetch(drawCard)
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  let data = await response.json();
+    console.log(data.cards[0]);
+    return data.cards[0].image;
+  } catch (error) {
+    console.log("Fetch failed: ", error)
+    return null
+  }
+}
+
+for (let i=0; i < 5; i++) {
+  await cardMaker(newDeck)
+}
