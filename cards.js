@@ -18,7 +18,7 @@ resizeCanvas();
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
 function randRotInRads() {
-  if (Math.random() > 0.5) {
+  if (Math.random() >= 0.5) {
     return (Math.floor(Math.random() * 360) * Math.PI) / 180;
   } else {
     return -(Math.floor(Math.random() * 360) * Math.PI) / 180;
@@ -46,8 +46,8 @@ async function cardMaker(deck) {
     };
     gsap.to(newCard.valObj, {
       rotateVal: randRotInRads(),
-      xVal: canvas.width / 2 + randOffset(100),
-      yVal: canvas.height / 2 + randOffset(100),
+      xVal: canvas.width / 2 + randOffset(200),
+      yVal: canvas.height / 2 + randOffset(200),
       ease: "power4.out",
       duration: 1,
     });
