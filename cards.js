@@ -17,6 +17,88 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
+let is_dragging = false
+let currentCard = null
+let startX;
+let startY;
+
+canvas.onmousedown = mouse_down
+canvas.onmouseup = mouse_up
+canvas.onmousemove = mouse_move
+canvas.onmouseout = mouse_out
+
+function mouse_down(event) {
+  event.preventDefault()
+  startX = event.clientX
+  startY = event.clientY
+  for (let i=cardArr.length - 1; i > -1; i--) {
+    if (inRotatedRect(event.clientX, event.clientY, cardArr[i])) {
+      console.log("Yes!")
+      console.log(cardArr[i].valObj.cardVal)
+      currentCard = cardArr[i]
+      is_dragging = true
+      break
+    } else {
+      console.log("No!")
+    }
+  }
+}
+
+function mouse_up(event) {
+  if (!is_dragging) {
+    return
+  }
+  event.preventDefault()
+  is_dragging = false
+}
+
+function mouse_move(event) {
+  if (is_dragging) {
+    event.preventDefault()
+    let mouseX = event.clientX
+    let mouseY = event.clientY
+
+    let dx = mouseX - startX
+    let dy = mouseY - startY
+
+    currentCard.valObj.xVal += dx
+    currentCard.valObj.yVal += dy
+
+    startX = mouseX
+    startY = mouseY
+
+  } else {
+    return
+  }
+}
+
+function mouse_out (event) {
+  if (!is_dragging) {
+    return
+  }
+  event.preventDefault()
+  is_dragging = false
+}
+
+function inRotatedRect(mouseX, mouseY, rect) {
+  
+  const translatedX = mouseX - rect.valObj.xVal
+  const translatedY = mouseY - rect.valObj.yVal
+
+  const unrotatedX = translatedX * Math.cos(-rect.valObj.rotVal) - translatedY * Math.sin(-rect.valObj.rotVal)
+  const unrotatedY = translatedX * Math.sin(-rect.valObj.rotVal) + translatedY * Math.cos(-rect.valObj.rotVal)
+
+  const halfWidth = rect.width / 2
+  const halfHeight = rect.height / 2
+
+  return (
+    unrotatedX >= -halfWidth &&
+    unrotatedX <= halfWidth &&
+    unrotatedY >= -halfHeight &&
+    unrotatedY <= halfHeight
+  )
+}
+
 function randRotInRads() {
   if (Math.random() >= 0.5) {
     return (Math.floor(Math.random() * 360) * Math.PI) / 180;
@@ -37,15 +119,18 @@ let cardArr = [];
 
 async function cardMaker(deck) {
   let newCard = new Image();
-  newCard.src = await drawCards(deck);
+  let cardData = await drawCards(deck);
+  newCard.src = cardData.image
   newCard.addEventListener("load", () => {
     newCard.valObj = {
       xVal: 0,
       yVal: canvas.height,
-      rotateVal: 0,
+      rotVal: 0,
+      cardVal: cardData.value,
+      cardSuit: cardData.suit
     };
     gsap.to(newCard.valObj, {
-      rotateVal: randRotInRads(),
+      rotVal: randRotInRads(),
       xVal: canvas.width / 2 + randOffset(200),
       yVal: canvas.height / 2 + randOffset(200),
       ease: "power4.out",
@@ -59,7 +144,6 @@ let decks = 1;
 
 async function genDeck(decks) {
   let deckUrl = `https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=${decks}`;
-
   try {
     let response = await fetch(deckUrl);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -82,7 +166,7 @@ async function drawCards(newDeck) {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     let data = await response.json();
     console.log(data.cards[0]);
-    return data.cards[0].image;
+    return data.cards[0];
   } catch (error) {
     console.log("Fetch failed: ", error);
     return null;
@@ -104,7 +188,7 @@ gsap.ticker.add(function () {
     for (let i = 0; i < cardArr.length; i++) {
       ctx.save();
       ctx.translate(cardArr[i].valObj.xVal, cardArr[i].valObj.yVal);
-      ctx.rotate(cardArr[i].valObj.rotateVal);
+      ctx.rotate(cardArr[i].valObj.rotVal);
       ctx.drawImage(cardArr[i], -cardArr[i].width / 2, -cardArr[i].height / 2);
       ctx.restore();
     }
