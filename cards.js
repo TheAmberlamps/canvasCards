@@ -17,86 +17,167 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
-let is_dragging = false
-let currentCard = null
+let is_dragging = false;
+let currentCard = null;
+let cardIndex = null;
+let fiddleArr = false;
 let startX;
 let startY;
 
-canvas.onmousedown = mouse_down
-canvas.onmouseup = mouse_up
-canvas.onmousemove = mouse_move
-canvas.onmouseout = mouse_out
+canvas.onmousedown = mouse_down;
+canvas.onmouseup = mouse_up;
+canvas.onmousemove = mouse_move;
+canvas.onmouseout = mouse_out;
 
 function mouse_down(event) {
-  event.preventDefault()
-  startX = event.clientX
-  startY = event.clientY
-  for (let i=cardArr.length - 1; i > -1; i--) {
+  event.preventDefault();
+  startX = event.clientX;
+  startY = event.clientY;
+  for (let i = cardArr.length - 1; i > -1; i--) {
     if (inRotatedRect(event.clientX, event.clientY, cardArr[i])) {
-      console.log("Yes!")
-      console.log(cardArr[i].valObj.cardVal)
-      currentCard = cardArr[i]
-      is_dragging = true
-      break
+      console.log("Yes!");
+      console.log(cardArr[i].valObj.cardVal);
+      currentCard = cardArr[i];
+      cardIndex = i;
+      is_dragging = true;
+      break;
     } else {
-      console.log("No!")
+      console.log("No!");
     }
   }
 }
 
 function mouse_up(event) {
   if (!is_dragging) {
-    return
+    return;
   }
-  event.preventDefault()
-  is_dragging = false
+  event.preventDefault();
+  is_dragging = false;
 }
 
 function mouse_move(event) {
   if (is_dragging) {
-    event.preventDefault()
-    let mouseX = event.clientX
-    let mouseY = event.clientY
+    event.preventDefault();
+    let mainBox = getBoundingBox(
+      currentCard.valObj.xVal,
+      currentCard.valObj.yVal,
+      currentCard.width,
+      currentCard.height,
+      currentCard.valObj.rotVal
+    );
+    let count = 0;
+    for (let i = 0; i < cardArr.length; i++) {
+      if (cardArr[i] != currentCard) {
+        let newBox = getBoundingBox(
+          cardArr[i].valObj.xVal,
+          cardArr[i].valObj.yVal,
+          cardArr[i].width,
+          cardArr[i].height,
+          cardArr[i].valObj.rotVal
+        );
+        if (!checkAABBOverlap(mainBox, newBox)) {
+          count++;
+        }
+      }
+    }
+    //console.log("cardArr[-1]: " + cardArr[cardArr.length - 1]);
+    let mouseX = event.clientX;
+    let mouseY = event.clientY;
 
-    let dx = mouseX - startX
-    let dy = mouseY - startY
+    let dx = mouseX - startX;
+    let dy = mouseY - startY;
 
-    currentCard.valObj.xVal += dx
-    currentCard.valObj.yVal += dy
+    currentCard.valObj.xVal += dx;
+    currentCard.valObj.yVal += dy;
 
-    startX = mouseX
-    startY = mouseY
-
+    startX = mouseX;
+    startY = mouseY;
+    if (
+      count === cardArr.length - 1 &&
+      currentCard !== cardArr[cardArr.length - 1]
+    ) {
+      fiddleArr = true;
+    }
   } else {
-    return
+    return;
   }
 }
 
-function mouse_out (event) {
+function mouse_out(event) {
   if (!is_dragging) {
-    return
+    return;
   }
-  event.preventDefault()
-  is_dragging = false
+  event.preventDefault();
+  is_dragging = false;
+}
+
+function getBoundingBox(cx, cy, w, h, angle) {
+  const halfW = w / 2;
+  const halfH = h / 2;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+
+  const corners = [
+    { x: cx - halfW, y: cy - halfH },
+    { x: cx + halfW, y: cy - halfH },
+    { x: cx + halfW, y: cy + halfH },
+    { x: cx - halfW, y: cy + halfH },
+  ];
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  for (const corner of corners) {
+    // Rotate point around the center (cx, cy)
+    const rotatedX = cx + (corner.x - cx) * cos - (corner.y - cy) * sin;
+    const rotatedY = cy + (corner.x - cx) * sin + (corner.y - cy) * cos;
+
+    if (rotatedX < minX) minX = rotatedX;
+    if (rotatedX > maxX) maxX = rotatedX;
+    if (rotatedY < minY) minY = rotatedY;
+    if (rotatedY > maxY) maxY = rotatedY;
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+function checkAABBOverlap(rectA, rectB) {
+  // Basic overlap check (Standard AABB-AABB)
+  return (
+    rectA.x < rectB.x + rectB.width &&
+    rectA.x + rectA.width > rectB.x &&
+    rectA.y < rectB.y + rectB.height &&
+    rectA.y + rectA.height > rectB.y
+  );
 }
 
 function inRotatedRect(mouseX, mouseY, rect) {
-  
-  const translatedX = mouseX - rect.valObj.xVal
-  const translatedY = mouseY - rect.valObj.yVal
+  const translatedX = mouseX - rect.valObj.xVal;
+  const translatedY = mouseY - rect.valObj.yVal;
 
-  const unrotatedX = translatedX * Math.cos(-rect.valObj.rotVal) - translatedY * Math.sin(-rect.valObj.rotVal)
-  const unrotatedY = translatedX * Math.sin(-rect.valObj.rotVal) + translatedY * Math.cos(-rect.valObj.rotVal)
+  const unrotatedX =
+    translatedX * Math.cos(-rect.valObj.rotVal) -
+    translatedY * Math.sin(-rect.valObj.rotVal);
+  const unrotatedY =
+    translatedX * Math.sin(-rect.valObj.rotVal) +
+    translatedY * Math.cos(-rect.valObj.rotVal);
 
-  const halfWidth = rect.width / 2
-  const halfHeight = rect.height / 2
+  const halfWidth = rect.width / 2;
+  const halfHeight = rect.height / 2;
 
   return (
     unrotatedX >= -halfWidth &&
     unrotatedX <= halfWidth &&
     unrotatedY >= -halfHeight &&
     unrotatedY <= halfHeight
-  )
+  );
 }
 
 function randRotInRads() {
@@ -120,14 +201,14 @@ let cardArr = [];
 async function cardMaker(deck) {
   let newCard = new Image();
   let cardData = await drawCards(deck);
-  newCard.src = cardData.image
+  newCard.src = cardData.image;
   newCard.addEventListener("load", () => {
     newCard.valObj = {
       xVal: 0,
       yVal: canvas.height,
       rotVal: 0,
       cardVal: cardData.value,
-      cardSuit: cardData.suit
+      cardSuit: cardData.suit,
     };
     gsap.to(newCard.valObj, {
       rotVal: randRotInRads(),
@@ -183,6 +264,12 @@ for (let i = 0; i < 5; i++) {
 
 // update loop
 gsap.ticker.add(function () {
+  if (fiddleArr) {
+    fiddleArr = false;
+    let removedCard = cardArr.splice(cardIndex, 1);
+    cardArr.push(removedCard);
+    currentCard = cardArr[cardArr.length - 1];
+  }
   if (cardArr.length > 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < cardArr.length; i++) {
