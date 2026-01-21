@@ -21,6 +21,7 @@ let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
 let fiddleArr = false;
+let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let startX;
 let startY;
 
@@ -38,6 +39,25 @@ function mouse_down(event) {
       console.log("Yes!");
       console.log(cardArr[i].valObj.cardVal);
       currentCard = cardArr[i];
+      gsap.to(currentCard.valObj, {
+        xScale: 0,
+        duration: 0.5,
+        onComplete: () => {
+          if (currentCard.src === currentCard.valObj.cardImg) {
+            currentCard.src = cardBack;
+            gsap.to(currentCard.valObj, {
+              xScale: 1,
+              duration: 0.5,
+            });
+          } else {
+            currentCard.src = currentCard.valObj.cardImg;
+            gsap.to(currentCard.valObj, {
+              xScale: 1,
+              duration: 0.5,
+            });
+          }
+        },
+      });
       cardIndex = i;
       is_dragging = true;
       break;
@@ -63,7 +83,7 @@ function mouse_move(event) {
       currentCard.valObj.yVal,
       currentCard.width,
       currentCard.height,
-      currentCard.valObj.rotVal
+      currentCard.valObj.rotVal,
     );
     let count = 0;
     for (let i = 0; i < cardArr.length; i++) {
@@ -73,7 +93,7 @@ function mouse_move(event) {
           cardArr[i].valObj.yVal,
           cardArr[i].width,
           cardArr[i].height,
-          cardArr[i].valObj.rotVal
+          cardArr[i].valObj.rotVal,
         );
         if (!checkAABBOverlap(mainBox, newBox)) {
           count++;
@@ -202,23 +222,31 @@ async function cardMaker(deck) {
   let newCard = new Image();
   let cardData = await drawCards(deck);
   newCard.src = cardData.image;
-  newCard.addEventListener("load", () => {
-    newCard.valObj = {
-      xVal: 0,
-      yVal: canvas.height,
-      rotVal: 0,
-      cardVal: cardData.value,
-      cardSuit: cardData.suit,
-    };
-    gsap.to(newCard.valObj, {
-      rotVal: randRotInRads(),
-      xVal: canvas.width / 2 + randOffset(200),
-      yVal: canvas.height / 2 + randOffset(200),
-      ease: "power4.out",
-      duration: 1,
-    });
-    cardArr.push(newCard);
-  });
+  //newCard.src = cardBack;
+  newCard.addEventListener(
+    "load",
+    () => {
+      newCard.valObj = {
+        xVal: 0,
+        yVal: canvas.height,
+        rotVal: 0,
+        xScale: 1,
+        yScale: 1,
+        cardVal: cardData.value,
+        cardSuit: cardData.suit,
+        cardImg: cardData.image,
+      };
+      gsap.to(newCard.valObj, {
+        rotVal: randRotInRads(),
+        xVal: canvas.width / 2 + randOffset(200),
+        yVal: canvas.height / 2 + randOffset(200),
+        ease: "power4.out",
+        duration: 1,
+      });
+      cardArr.push(newCard);
+    },
+    { once: true },
+  );
 }
 
 let decks = 1;
@@ -276,6 +304,7 @@ gsap.ticker.add(function () {
       ctx.save();
       ctx.translate(cardArr[i].valObj.xVal, cardArr[i].valObj.yVal);
       ctx.rotate(cardArr[i].valObj.rotVal);
+      ctx.scale(cardArr[i].valObj.xScale, 1);
       ctx.drawImage(cardArr[i], -cardArr[i].width / 2, -cardArr[i].height / 2);
       ctx.restore();
     }
