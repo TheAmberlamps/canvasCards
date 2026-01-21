@@ -8,8 +8,6 @@ function resizeCanvas() {
 
   // Note: Resizing the canvas clears its content.
   // Your drawing code must be called after this to display correctly.
-
-  //drawScene(); // Call your main drawing function here
 }
 
 // Initial call to set the canvas size when the page loads
@@ -118,6 +116,12 @@ function mouse_move(event) {
     ) {
       fiddleArr = true;
     }
+    /*if (fiddleArr) {
+      fiddleArr = false;
+      let removedCard = cardArr.splice(cardIndex, 1);
+      currentCard = removedCard;
+      cardArr.push(removedCard);
+    }*/
   } else {
     return;
   }
@@ -292,15 +296,12 @@ for (let i = 0; i < 5; i++) {
 
 // update loop
 gsap.ticker.add(function () {
-  if (fiddleArr) {
-    fiddleArr = false;
-    let removedCard = cardArr.splice(cardIndex, 1);
-    cardArr.push(removedCard);
-    currentCard = cardArr[cardArr.length - 1];
-  }
   if (cardArr.length > 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < cardArr.length; i++) {
+      //console.log(cardArr[i].valObj)
+      //console.log("cardArr.length: " + cardArr.length)
+      //console.log("i: " + i)
       ctx.save();
       ctx.translate(cardArr[i].valObj.xVal, cardArr[i].valObj.yVal);
       ctx.rotate(cardArr[i].valObj.rotVal);
