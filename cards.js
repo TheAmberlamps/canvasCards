@@ -19,6 +19,8 @@ let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
 let fiddleArr = false;
+let mainText = document.getElementById("textPrompt")
+mainText.textContent = "START"
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let startX;
 let startY;
@@ -27,6 +29,34 @@ canvas.onmousedown = mouse_down;
 canvas.onmouseup = mouse_up;
 canvas.onmousemove = mouse_move;
 canvas.onmouseout = mouse_out;
+
+function cardFlip (card) {
+  let time = 0.25
+  if (card.valObj.flipping === false) {
+    card.valObj.flipping = true
+    gsap.to(card.valObj, {
+      xScale: 0,
+      duration: time,
+      onComplete: () => {
+        if (card.src === card.valObj.cardImg) {
+          card.src = cardBack;
+          gsap.to(card.valObj, {
+            xScale: 1,
+            duration: time,
+            flipping: false
+          });
+        } else {
+          card.src = card.valObj.cardImg;
+          gsap.to(card.valObj, {
+            xScale: 1,
+            duration: time,
+            flipping: false
+          });
+        }
+      }
+    })
+  }
+}
 
 function mouse_down(event) {
   event.preventDefault();
@@ -37,27 +67,9 @@ function mouse_down(event) {
       console.log("Yes!");
       console.log(cardArr[i].valObj.cardVal);
       currentCard = cardArr[i];
-      gsap.to(currentCard.valObj, {
-        xScale: 0,
-        duration: 0.5,
-        onComplete: () => {
-          if (currentCard.src === currentCard.valObj.cardImg) {
-            currentCard.src = cardBack;
-            gsap.to(currentCard.valObj, {
-              xScale: 1,
-              duration: 0.5,
-            });
-          } else {
-            currentCard.src = currentCard.valObj.cardImg;
-            gsap.to(currentCard.valObj, {
-              xScale: 1,
-              duration: 0.5,
-            });
-          }
-        },
-      });
-      cardIndex = i;
-      is_dragging = true;
+      cardIndex = i
+      is_dragging = true
+      cardFlip(cardArr[i])
       break;
     } else {
       console.log("No!");
@@ -76,29 +88,7 @@ function mouse_up(event) {
 function mouse_move(event) {
   if (is_dragging) {
     event.preventDefault();
-    let mainBox = getBoundingBox(
-      currentCard.valObj.xVal,
-      currentCard.valObj.yVal,
-      currentCard.width,
-      currentCard.height,
-      currentCard.valObj.rotVal,
-    );
-    let count = 0;
-    for (let i = 0; i < cardArr.length; i++) {
-      if (cardArr[i] != currentCard) {
-        let newBox = getBoundingBox(
-          cardArr[i].valObj.xVal,
-          cardArr[i].valObj.yVal,
-          cardArr[i].width,
-          cardArr[i].height,
-          cardArr[i].valObj.rotVal,
-        );
-        if (!checkAABBOverlap(mainBox, newBox)) {
-          count++;
-        }
-      }
-    }
-    //console.log("cardArr[-1]: " + cardArr[cardArr.length - 1]);
+    
     let mouseX = event.clientX;
     let mouseY = event.clientY;
 
@@ -110,18 +100,6 @@ function mouse_move(event) {
 
     startX = mouseX;
     startY = mouseY;
-    if (
-      count === cardArr.length - 1 &&
-      currentCard !== cardArr[cardArr.length - 1]
-    ) {
-      fiddleArr = true;
-    }
-    /*if (fiddleArr) {
-      fiddleArr = false;
-      let removedCard = cardArr.splice(cardIndex, 1);
-      currentCard = removedCard;
-      cardArr.push(removedCard);
-    }*/
   } else {
     return;
   }
@@ -133,53 +111,6 @@ function mouse_out(event) {
   }
   event.preventDefault();
   is_dragging = false;
-}
-
-function getBoundingBox(cx, cy, w, h, angle) {
-  const halfW = w / 2;
-  const halfH = h / 2;
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-
-  const corners = [
-    { x: cx - halfW, y: cy - halfH },
-    { x: cx + halfW, y: cy - halfH },
-    { x: cx + halfW, y: cy + halfH },
-    { x: cx - halfW, y: cy + halfH },
-  ];
-
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-
-  for (const corner of corners) {
-    // Rotate point around the center (cx, cy)
-    const rotatedX = cx + (corner.x - cx) * cos - (corner.y - cy) * sin;
-    const rotatedY = cy + (corner.x - cx) * sin + (corner.y - cy) * cos;
-
-    if (rotatedX < minX) minX = rotatedX;
-    if (rotatedX > maxX) maxX = rotatedX;
-    if (rotatedY < minY) minY = rotatedY;
-    if (rotatedY > maxY) maxY = rotatedY;
-  }
-
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY,
-  };
-}
-
-function checkAABBOverlap(rectA, rectB) {
-  // Basic overlap check (Standard AABB-AABB)
-  return (
-    rectA.x < rectB.x + rectB.width &&
-    rectA.x + rectA.width > rectB.x &&
-    rectA.y < rectB.y + rectB.height &&
-    rectA.y + rectA.height > rectB.y
-  );
 }
 
 function inRotatedRect(mouseX, mouseY, rect) {
@@ -212,11 +143,11 @@ function randRotInRads() {
   }
 }
 
-function randOffset(val) {
+function randOffset(offset) {
   if (Math.random() > 0.5) {
-    return Math.floor(Math.random() * val);
+    return Math.floor(Math.random() * offset);
   } else {
-    return -Math.floor(Math.random() * val);
+    return -Math.floor(Math.random() * offset);
   }
 }
 
@@ -239,11 +170,12 @@ async function cardMaker(deck) {
         cardVal: cardData.value,
         cardSuit: cardData.suit,
         cardImg: cardData.image,
+        flipping: false
       };
       gsap.to(newCard.valObj, {
         rotVal: randRotInRads(),
-        xVal: canvas.width / 2 + randOffset(200),
-        yVal: canvas.height / 2 + randOffset(200),
+        xVal: canvas.width / 2 + randOffset(600),
+        yVal: canvas.height / 2 + randOffset(350),
         ease: "power4.out",
         duration: 1,
       });
