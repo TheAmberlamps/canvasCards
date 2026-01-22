@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-image: url("Texturelabs_Fabric_184S.jpg");
+}
+
+canvas {
+  position: absolute;
+}
+
+#startButton {
+  position: absolute;
+  font-size: 5rem;
+  background-color: transparent;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+#titleCard {
+  position: absolute;
+  font-size: 7rem;
+  text-align: center;
+  left: 50%;
+  top: 15%;
+  transform: translate(-50%, -50%);
+}

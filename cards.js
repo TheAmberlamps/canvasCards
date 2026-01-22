@@ -15,13 +15,12 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
+let decks = 1;
+let cardArr = [];
+let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
-let fiddleArr = false;
-let mainText = document.getElementById("textPrompt")
-mainText.textContent = "START"
-let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let startX;
 let startY;
 
@@ -30,10 +29,36 @@ canvas.onmouseup = mouse_up;
 canvas.onmousemove = mouse_move;
 canvas.onmouseout = mouse_out;
 
-function cardFlip (card) {
-  let time = 0.25
+let title = document.getElementById("titleCard");
+let mainText = document.getElementById("startButton");
+mainText.textContent = "START";
+mainText.addEventListener(
+  "click",
+  () => {
+    console.log("Yep");
+    gsap.to(mainText, {
+      opacity: 0,
+      duration: 1,
+      onComplete: () => {
+        mainText.style.display = "none";
+        throwCards(5);
+      },
+    });
+    gsap.to(title, {
+      opacity: 0,
+      duration: 1,
+      onComplete: () => {
+        title.style.display = "none";
+      },
+    });
+  },
+  { once: true },
+);
+
+function cardFlip(card) {
+  let time = 0.25;
   if (card.valObj.flipping === false) {
-    card.valObj.flipping = true
+    card.valObj.flipping = true;
     gsap.to(card.valObj, {
       xScale: 0,
       duration: time,
@@ -43,18 +68,18 @@ function cardFlip (card) {
           gsap.to(card.valObj, {
             xScale: 1,
             duration: time,
-            flipping: false
+            flipping: false,
           });
         } else {
           card.src = card.valObj.cardImg;
           gsap.to(card.valObj, {
             xScale: 1,
             duration: time,
-            flipping: false
+            flipping: false,
           });
         }
-      }
-    })
+      },
+    });
   }
 }
 
@@ -67,9 +92,9 @@ function mouse_down(event) {
       console.log("Yes!");
       console.log(cardArr[i].valObj.cardVal);
       currentCard = cardArr[i];
-      cardIndex = i
-      is_dragging = true
-      cardFlip(cardArr[i])
+      cardIndex = i;
+      is_dragging = true;
+      cardFlip(cardArr[i]);
       break;
     } else {
       console.log("No!");
@@ -88,7 +113,7 @@ function mouse_up(event) {
 function mouse_move(event) {
   if (is_dragging) {
     event.preventDefault();
-    
+
     let mouseX = event.clientX;
     let mouseY = event.clientY;
 
@@ -151,8 +176,6 @@ function randOffset(offset) {
   }
 }
 
-let cardArr = [];
-
 async function cardMaker(deck) {
   let newCard = new Image();
   let cardData = await drawCards(deck);
@@ -170,7 +193,7 @@ async function cardMaker(deck) {
         cardVal: cardData.value,
         cardSuit: cardData.suit,
         cardImg: cardData.image,
-        flipping: false
+        flipping: false,
       };
       gsap.to(newCard.valObj, {
         rotVal: randRotInRads(),
@@ -184,8 +207,6 @@ async function cardMaker(deck) {
     { once: true },
   );
 }
-
-let decks = 1;
 
 async function genDeck(decks) {
   let deckUrl = `https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=${decks}`;
@@ -202,8 +223,6 @@ async function genDeck(decks) {
 
 let newDeck = await genDeck(decks);
 
-console.log(newDeck);
-
 async function drawCards(newDeck) {
   let drawCard = `https://deckofcardsapi.com/api/deck/${newDeck}/draw/?count=1`;
   try {
@@ -218,22 +237,21 @@ async function drawCards(newDeck) {
   }
 }
 
-for (let i = 0; i < 5; i++) {
-  // I like this
-  let time = (i + 1) * 500;
-  setTimeout(async function () {
-    await cardMaker(newDeck);
-  }, time);
+async function throwCards(amt) {
+  for (let i = 0; i < amt; i++) {
+    // I like this
+    let time = (i + 1) * 500;
+    setTimeout(async function () {
+      await cardMaker(newDeck);
+    }, time);
+  }
 }
 
 // update loop
-gsap.ticker.add(function () {
+gsap.ticker.add(() => {
   if (cardArr.length > 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < cardArr.length; i++) {
-      //console.log(cardArr[i].valObj)
-      //console.log("cardArr.length: " + cardArr.length)
-      //console.log("i: " + i)
       ctx.save();
       ctx.translate(cardArr[i].valObj.xVal, cardArr[i].valObj.yVal);
       ctx.rotate(cardArr[i].valObj.rotVal);
