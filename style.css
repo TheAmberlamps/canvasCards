@@ -9,6 +9,7 @@ canvas {
 }
 
 #startButton {
+  display: block;
   position: absolute;
   font-size: 5rem;
   background-color: transparent;

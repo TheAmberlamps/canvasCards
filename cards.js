@@ -17,10 +17,12 @@ resizeCanvas();
 
 let decks = 1;
 let cardArr = [];
-let cardBack = "https://deckofcardsapi.com/static/img/back.png";
+let cardBack = "https://deckofcardsapi.com/static/img/back.png"
 let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
+let guessCard = null;
+let guessInd;
 let startX;
 let startY;
 
@@ -57,7 +59,8 @@ mainText.addEventListener(
 
 function cardFlip(card) {
   let time = 0.25;
-  if (card.valObj.flipping === false) {
+  if (card.valObj.flipping === false && card.valObj.flippable === true) {
+    card.valObj.flippable = false
     card.valObj.flipping = true;
     gsap.to(card.valObj, {
       xScale: 0,
@@ -93,7 +96,13 @@ function mouse_down(event) {
       console.log(cardArr[i].valObj.cardVal);
       currentCard = cardArr[i];
       cardIndex = i;
-      is_dragging = true;
+      //is_dragging = true;
+      console.log("guessVal:" + guessCard)
+      if (checkGuess(guessCard, currentCard) === true) {
+        cardOut(currentCard)
+      } else {
+        console.log("Not verified!")
+      }
       cardFlip(cardArr[i]);
       break;
     } else {
@@ -176,24 +185,31 @@ function randOffset(offset) {
   }
 }
 
-async function cardMaker(deck) {
+async function cardMaker(deck, x, y) {
   let newCard = new Image();
   let cardData = await drawCards(deck);
   newCard.src = cardData.image;
-  //newCard.src = cardBack;
+  let color;
+  if (cardData.suit === "SPADES" || cardData.suit === "CLUBS") {
+    color = "BLACK"
+  } else {
+    color = "RED"
+  }
   newCard.addEventListener(
     "load",
     () => {
       newCard.valObj = {
-        xVal: 0,
-        yVal: canvas.height,
+        xVal: x,
+        yVal: y,
         rotVal: 0,
         xScale: 1,
         yScale: 1,
         cardVal: cardData.value,
         cardSuit: cardData.suit,
+        cardColor: color,
         cardImg: cardData.image,
         flipping: false,
+        flipabble: false
       };
       gsap.to(newCard.valObj, {
         rotVal: randRotInRads(),
@@ -242,9 +258,96 @@ async function throwCards(amt) {
     // I like this
     let time = (i + 1) * 500;
     setTimeout(async function () {
-      await cardMaker(newDeck);
+      await cardMaker(newDeck, 0, canvas.height);
     }, time);
   }
+  memoTimer((amt * 500) + 2000)
+}
+
+let countVal = 6
+let countDown;
+
+function selectGuess() {
+  if (guessCard === null) {
+    guessCard = new Image()
+    guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
+    let guessVal = guessInd.valObj
+    guessCard.src = guessVal.cardImg
+    guessCard.addEventListener(
+    "load",
+    () => {
+    guessCard.valObj = {
+      xVal: canvas.width + guessCard.width,
+      yVal: canvas.height / 2,
+      xScale: 1,
+      flipping: false,
+      flippable: false,
+      cardImg: guessVal.cardImg
+    }
+    gsap.to(guessCard.valObj, {
+      xVal: canvas.width - guessCard.width,
+      yVal: canvas.height / 2,
+      duration: 0.5
+    })
+  }, { once: true} )}
+  else {
+    guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
+    guessCard.valObj.flippable = true
+    cardFlip(guessCard)
+    //guessCard.src = guessInd.valObj.cardImg
+    //guessCard.valObj.flippable = true
+    //cardFlip(guessCard)
+  }
+  //console.log(`Find a ${guessCard.valObj.cardColor} ${guessCard.valObj.cardVal}`)
+}
+
+function checkGuess(guess, currCard) {
+  if (guess.valObj.cardImg === currCard.valObj.cardImg) {
+    // this splice seems to be breaking everything for some reason
+    //cardArr.splice(guessInd, 1)
+    selectGuess()
+    return true
+  } else {
+    return false
+  }
+}
+
+function cardOut(card) {
+  card.valObj.flippable = true
+  cardFlip(card)
+  gsap.to(card.valObj, {
+    rotVal: randRotInRads(),
+    xVal: canvas.width + card.width,
+    yVal: -canvas.height + card.height,
+    ease: "power4.in",
+    duration: 1,
+  });
+}
+
+async function incrementer() {
+  countVal--
+  console.log(countVal)
+  console.log("mainText.style.display: " + mainText.style.display)
+  mainText.textContent = countVal
+  mainText.style.display = 'unset'
+  mainText.style.opacity = 1
+  if (countVal < 1) {
+    clearInterval(countDown)
+    console.log("ended")
+    selectGuess()
+  }
+}
+
+async function memoTimer(time) {
+  countDown = setInterval(incrementer, 1000)
+  setTimeout(async function () {
+    cardArr.forEach(element => {
+      console.log(element)
+      console.log(element.valObj.flipabble)
+      element.valObj.flippable = true
+      cardFlip(element)
+    });
+  }, time)
 }
 
 // update loop
@@ -258,6 +361,13 @@ gsap.ticker.add(() => {
       ctx.scale(cardArr[i].valObj.xScale, 1);
       ctx.drawImage(cardArr[i], -cardArr[i].width / 2, -cardArr[i].height / 2);
       ctx.restore();
+    }
+    if (guessCard) {
+      ctx.save()
+      ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal)
+      ctx.scale(guessCard.valObj.xScale, 1)
+      ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2)
+      ctx.restore()
     }
   }
 });
