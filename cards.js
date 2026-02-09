@@ -22,6 +22,7 @@ let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
 let guessCard = null;
+let arrMut = false;
 let guessInd;
 let startX;
 let startY;
@@ -74,11 +75,11 @@ function cardFlip(card) {
             flipping: false,
           });
         } else if (card === guessCard && card.src === cardBack) {
-          let newCard = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
-          console.log(newCard)
-          console.log(newCard.valObj.cardImg)
-          card.src = newCard.valObj.cardImg
-          card.valObj.cardImg = newCard.valObj.cardImg
+          arrMut = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
+          console.log(arrMut)
+          console.log(arrMut.valObj.cardImg)
+          card.src = arrMut.valObj.cardImg
+          card.valObj.cardImg = arrMut.valObj.cardImg
           gsap.to(card.valObj, {
             xScale: 1,
             duration: time,
@@ -389,5 +390,12 @@ gsap.ticker.add(() => {
       ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2)
       ctx.restore()
     }
+  }
+  if (arrMut) {
+    // splice array here to avoid potential array issues
+    // OK well splice is working without crashing the program but it's also removing the wrong card; it's removing the /new/ defined guessInd.
+    // I suppose the solution is to create a function that conditionally executes here to both splice and assign the array and define the new guessCard 
+    arrMut = false
+    cardArr.splice(guessInd, 1)
   }
 });
