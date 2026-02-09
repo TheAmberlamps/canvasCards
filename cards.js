@@ -73,6 +73,17 @@ function cardFlip(card) {
             duration: time,
             flipping: false,
           });
+        } else if (card === guessCard && card.src === cardBack) {
+          let newCard = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
+          console.log(newCard)
+          console.log(newCard.valObj.cardImg)
+          card.src = newCard.valObj.cardImg
+          card.valObj.cardImg = newCard.valObj.cardImg
+          gsap.to(card.valObj, {
+            xScale: 1,
+            duration: time,
+            flipping: false,
+          })
         } else {
           card.src = card.valObj.cardImg;
           gsap.to(card.valObj, {
@@ -291,9 +302,10 @@ function selectGuess() {
     })
   }, { once: true} )}
   else {
-    guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
     guessCard.valObj.flippable = true
+    console.log("here we go")
     cardFlip(guessCard)
+    //guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
     //guessCard.src = guessInd.valObj.cardImg
     //guessCard.valObj.flippable = true
     //cardFlip(guessCard)
@@ -305,6 +317,7 @@ function checkGuess(guess, currCard) {
   if (guess.valObj.cardImg === currCard.valObj.cardImg) {
     // this splice seems to be breaking everything for some reason
     //cardArr.splice(guessInd, 1)
+    // most likely the issue here was splicing the array as it was being accessed
     selectGuess()
     return true
   } else {
@@ -312,8 +325,9 @@ function checkGuess(guess, currCard) {
   }
 }
 
-function cardOut(card) {
+async function cardOut(card) {
   card.valObj.flippable = true
+  console.log("flipping")
   cardFlip(card)
   gsap.to(card.valObj, {
     rotVal: randRotInRads(),
@@ -321,6 +335,12 @@ function cardOut(card) {
     yVal: -canvas.height + card.height,
     ease: "power4.in",
     duration: 1,
+    onComplete: () => {
+      guessCard.valObj.flippable = true
+      cardFlip(guessCard)
+      console.log(guessCard)
+      console.log("I happened")
+    }
   });
 }
 
