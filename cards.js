@@ -17,7 +17,7 @@ resizeCanvas();
 
 let decks = 1;
 let cardArr = [];
-let cardBack = "https://deckofcardsapi.com/static/img/back.png"
+let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
@@ -61,7 +61,7 @@ mainText.addEventListener(
 function cardFlip(card) {
   let time = 0.25;
   if (card.valObj.flipping === false && card.valObj.flippable === true) {
-    card.valObj.flippable = false
+    card.valObj.flippable = false;
     card.valObj.flipping = true;
     gsap.to(card.valObj, {
       xScale: 0,
@@ -75,16 +75,8 @@ function cardFlip(card) {
             flipping: false,
           });
         } else if (card === guessCard && card.src === cardBack) {
-          arrMut = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
-          console.log(arrMut)
-          console.log(arrMut.valObj.cardImg)
-          card.src = arrMut.valObj.cardImg
-          card.valObj.cardImg = arrMut.valObj.cardImg
-          gsap.to(card.valObj, {
-            xScale: 1,
-            duration: time,
-            flipping: false,
-          })
+          // trigger switch here, write function to handle logic of assigning new card after mutating array and execute it in update loop
+          arrMut = true;
         } else {
           card.src = card.valObj.cardImg;
           gsap.to(card.valObj, {
@@ -109,11 +101,11 @@ function mouse_down(event) {
       currentCard = cardArr[i];
       cardIndex = i;
       //is_dragging = true;
-      console.log("guessVal:" + guessCard)
+      console.log("guessVal:" + guessCard);
       if (checkGuess(guessCard, currentCard) === true) {
-        cardOut(currentCard)
+        cardOut(currentCard);
       } else {
-        console.log("Not verified!")
+        console.log("Not verified!");
       }
       cardFlip(cardArr[i]);
       break;
@@ -203,9 +195,9 @@ async function cardMaker(deck, x, y) {
   newCard.src = cardData.image;
   let color;
   if (cardData.suit === "SPADES" || cardData.suit === "CLUBS") {
-    color = "BLACK"
+    color = "BLACK";
   } else {
-    color = "RED"
+    color = "RED";
   }
   newCard.addEventListener(
     "load",
@@ -221,7 +213,7 @@ async function cardMaker(deck, x, y) {
         cardColor: color,
         cardImg: cardData.image,
         flipping: false,
-        flipabble: false
+        flipabble: false,
       };
       gsap.to(newCard.valObj, {
         rotVal: randRotInRads(),
@@ -273,63 +265,71 @@ async function throwCards(amt) {
       await cardMaker(newDeck, 0, canvas.height);
     }, time);
   }
-  memoTimer((amt * 500) + 2000)
+  memoTimer(amt * 500 + 2000);
 }
 
-let countVal = 6
+let countVal = 6;
 let countDown;
 
 function selectGuess() {
   if (guessCard === null) {
-    guessCard = new Image()
-    guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
-    let guessVal = guessInd.valObj
-    guessCard.src = guessVal.cardImg
+    guessCard = new Image();
+    guessInd = [Math.floor(Math.random() * (cardArr.length - 1))];
+    let guessVal = cardArr[guessInd].valObj;
+    guessCard.src = guessVal.cardImg;
     guessCard.addEventListener(
-    "load",
-    () => {
-    guessCard.valObj = {
-      xVal: canvas.width + guessCard.width,
-      yVal: canvas.height / 2,
-      xScale: 1,
-      flipping: false,
-      flippable: false,
-      cardImg: guessVal.cardImg
-    }
-    gsap.to(guessCard.valObj, {
-      xVal: canvas.width - guessCard.width,
-      yVal: canvas.height / 2,
-      duration: 0.5
-    })
-  }, { once: true} )}
-  else {
-    guessCard.valObj.flippable = true
-    console.log("here we go")
-    cardFlip(guessCard)
-    //guessInd = cardArr[Math.floor(Math.random() * (cardArr.length - 1))]
-    //guessCard.src = guessInd.valObj.cardImg
-    //guessCard.valObj.flippable = true
-    //cardFlip(guessCard)
+      "load",
+      () => {
+        guessCard.valObj = {
+          xVal: canvas.width + guessCard.width,
+          yVal: canvas.height / 2,
+          xScale: 1,
+          flipping: false,
+          flippable: false,
+          cardImg: guessVal.cardImg,
+        };
+        gsap.to(guessCard.valObj, {
+          xVal: canvas.width - guessCard.width,
+          yVal: canvas.height / 2,
+          duration: 0.5,
+        });
+      },
+      { once: true },
+    );
+  } else {
+    guessCard.valObj.flippable = true;
+    cardFlip(guessCard);
   }
-  //console.log(`Find a ${guessCard.valObj.cardColor} ${guessCard.valObj.cardVal}`)
+}
+
+function newGuess(card) {
+  cardArr.splice(guessInd, 1);
+  if (cardArr.length > 0) {
+    guessInd = [Math.floor(Math.random() * (cardArr.length - 1))];
+    card.src = cardArr[guessInd].valObj.cardImg;
+    card.valObj.cardImg = card.src;
+    gsap.to(card.valObj, {
+      xScale: 1,
+      duration: 0.25,
+      flipping: false,
+    });
+  } else {
+    console.log("Round over!");
+  }
 }
 
 function checkGuess(guess, currCard) {
   if (guess.valObj.cardImg === currCard.valObj.cardImg) {
-    // this splice seems to be breaking everything for some reason
-    //cardArr.splice(guessInd, 1)
-    // most likely the issue here was splicing the array as it was being accessed
-    selectGuess()
-    return true
+    selectGuess();
+    return true;
   } else {
-    return false
+    return false;
   }
 }
 
 async function cardOut(card) {
-  card.valObj.flippable = true
-  console.log("flipping")
-  cardFlip(card)
+  card.valObj.flippable = true;
+  cardFlip(card);
   gsap.to(card.valObj, {
     rotVal: randRotInRads(),
     xVal: canvas.width + card.width,
@@ -337,38 +337,34 @@ async function cardOut(card) {
     ease: "power4.in",
     duration: 1,
     onComplete: () => {
-      guessCard.valObj.flippable = true
-      cardFlip(guessCard)
-      console.log(guessCard)
-      console.log("I happened")
-    }
+      guessCard.valObj.flippable = true;
+      cardFlip(guessCard);
+    },
   });
 }
 
 async function incrementer() {
-  countVal--
-  console.log(countVal)
-  console.log("mainText.style.display: " + mainText.style.display)
-  mainText.textContent = countVal
-  mainText.style.display = 'unset'
-  mainText.style.opacity = 1
+  countVal--;
+  console.log(countVal);
+  console.log("mainText.style.display: " + mainText.style.display);
+  mainText.textContent = countVal;
+  mainText.style.display = "unset";
+  mainText.style.opacity = 1;
   if (countVal < 1) {
-    clearInterval(countDown)
-    console.log("ended")
-    selectGuess()
+    clearInterval(countDown);
+    console.log("ended");
+    selectGuess();
   }
 }
 
 async function memoTimer(time) {
-  countDown = setInterval(incrementer, 1000)
+  countDown = setInterval(incrementer, 1000);
   setTimeout(async function () {
-    cardArr.forEach(element => {
-      console.log(element)
-      console.log(element.valObj.flipabble)
-      element.valObj.flippable = true
-      cardFlip(element)
+    cardArr.forEach((element) => {
+      element.valObj.flippable = true;
+      cardFlip(element);
     });
-  }, time)
+  }, time);
 }
 
 // update loop
@@ -384,18 +380,15 @@ gsap.ticker.add(() => {
       ctx.restore();
     }
     if (guessCard) {
-      ctx.save()
-      ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal)
-      ctx.scale(guessCard.valObj.xScale, 1)
-      ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2)
-      ctx.restore()
+      ctx.save();
+      ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal);
+      ctx.scale(guessCard.valObj.xScale, 1);
+      ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
+      ctx.restore();
     }
   }
   if (arrMut) {
-    // splice array here to avoid potential array issues
-    // OK well splice is working without crashing the program but it's also removing the wrong card; it's removing the /new/ defined guessInd.
-    // I suppose the solution is to create a function that conditionally executes here to both splice and assign the array and define the new guessCard 
-    arrMut = false
-    cardArr.splice(guessInd, 1)
+    arrMut = false;
+    newGuess(guessCard);
   }
 });
