@@ -15,6 +15,10 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
+const wrongSound = new Audio("assets/sounds/572936__bloodpixelhero__error.wav");
+wrongSound.playbackRate = 2;
+const correctSound = new Audio("assets/sounds/soft-dreamy-beep.ogg");
+correctSound.playbackRate = 2;
 let decks = 1;
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
@@ -58,38 +62,7 @@ mainText.addEventListener(
   { once: true },
 );
 
-function cardFlip(card) {
-  let time = 0.25;
-  if (card.valObj.flipping === false && card.valObj.flippable === true) {
-    card.valObj.flippable = false;
-    card.valObj.flipping = true;
-    gsap.to(card.valObj, {
-      xScale: 0,
-      duration: time,
-      onComplete: () => {
-        if (card.src === card.valObj.cardImg) {
-          card.src = cardBack;
-          gsap.to(card.valObj, {
-            xScale: 1,
-            duration: time,
-            flipping: false,
-          });
-        } else if (card === guessCard && card.src === cardBack) {
-          // trigger switch here, write function to handle logic of assigning new card after mutating array and execute it in update loop
-          arrMut = true;
-        } else {
-          card.src = card.valObj.cardImg;
-          gsap.to(card.valObj, {
-            xScale: 1,
-            duration: time,
-            flipping: false,
-          });
-        }
-      },
-    });
-  }
-}
-
+// mouse events
 function mouse_down(event) {
   event.preventDefault();
   startX = event.clientX;
@@ -104,8 +77,10 @@ function mouse_down(event) {
       console.log("guessVal:" + guessCard);
       if (checkGuess(guessCard, currentCard) === true) {
         cardOut(currentCard);
+        correctSound.play();
       } else {
         console.log("Not verified!");
+        wrongSound.play();
       }
       cardFlip(cardArr[i]);
       break;
@@ -173,6 +148,7 @@ function inRotatedRect(mouseX, mouseY, rect) {
   );
 }
 
+// animation functions
 function randRotInRads() {
   if (Math.random() >= 0.5) {
     return (Math.floor(Math.random() * 360) * Math.PI) / 180;
@@ -189,6 +165,39 @@ function randOffset(offset) {
   }
 }
 
+function cardFlip(card) {
+  let time = 0.25;
+  if (card.valObj.flipping === false && card.valObj.flippable === true) {
+    card.valObj.flippable = false;
+    card.valObj.flipping = true;
+    gsap.to(card.valObj, {
+      xScale: 0,
+      duration: time,
+      onComplete: () => {
+        if (card.src === card.valObj.cardImg) {
+          card.src = cardBack;
+          gsap.to(card.valObj, {
+            xScale: 1,
+            duration: time,
+            flipping: false,
+          });
+        } else if (card === guessCard && card.src === cardBack) {
+          // trigger switch here, write function to handle logic of assigning new card after mutating array and execute it in update loop
+          arrMut = true;
+        } else {
+          card.src = card.valObj.cardImg;
+          gsap.to(card.valObj, {
+            xScale: 1,
+            duration: time,
+            flipping: false,
+          });
+        }
+      },
+    });
+  }
+}
+
+// deck creation, access, card population and depopulation
 async function cardMaker(deck, x, y) {
   let newCard = new Image();
   let cardData = await drawCards(deck);
@@ -265,12 +274,28 @@ async function throwCards(amt) {
       await cardMaker(newDeck, 0, canvas.height);
     }, time);
   }
-  memoTimer(amt * 500 + 2000);
+  setTimeout(async function () {
+    memoTimer(amt * 1000 + 1000);
+  }, amt * 500);
 }
 
-let countVal = 6;
-let countDown;
+async function cardOut(card) {
+  card.valObj.flippable = true;
+  cardFlip(card);
+  gsap.to(card.valObj, {
+    rotVal: randRotInRads(),
+    xVal: canvas.width + card.width,
+    yVal: -canvas.height + card.height,
+    ease: "power4.in",
+    duration: 1,
+    onComplete: () => {
+      guessCard.valObj.flippable = true;
+      cardFlip(guessCard);
+    },
+  });
+}
 
+// game logic
 function selectGuess() {
   if (guessCard === null) {
     guessCard = new Image();
@@ -327,21 +352,9 @@ function checkGuess(guess, currCard) {
   }
 }
 
-async function cardOut(card) {
-  card.valObj.flippable = true;
-  cardFlip(card);
-  gsap.to(card.valObj, {
-    rotVal: randRotInRads(),
-    xVal: canvas.width + card.width,
-    yVal: -canvas.height + card.height,
-    ease: "power4.in",
-    duration: 1,
-    onComplete: () => {
-      guessCard.valObj.flippable = true;
-      cardFlip(guessCard);
-    },
-  });
-}
+// countdown logic
+let countVal = 6;
+let countDown;
 
 async function incrementer() {
   countVal--;
