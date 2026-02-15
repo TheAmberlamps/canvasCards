@@ -1,10 +1,14 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
+gsap.registerPlugin(CustomEase, CustomWiggle);
+
 function resizeCanvas() {
   // Set the internal canvas rendering size to match the browser window dimensions
   canvas.width = window.innerWidth;
+  console.log("canvas.width: " + canvas.width);
   canvas.height = window.innerHeight;
+  console.log("canvas.height: " + canvas.height);
 
   // Note: Resizing the canvas clears its content.
   // Your drawing code must be called after this to display correctly.
@@ -15,10 +19,15 @@ resizeCanvas();
 
 // video to watch to implement drag & drop: https://www.youtube.com/watch?v=7PYvx8u_9Sk
 
+// sounds
 const wrongSound = new Audio("assets/sounds/572936__bloodpixelhero__error.wav");
 wrongSound.playbackRate = 2;
 const correctSound = new Audio("assets/sounds/soft-dreamy-beep.ogg");
 correctSound.playbackRate = 2;
+
+// global variables
+const screenWidth = canvas.width;
+const screenHeight = canvas.height;
 let decks = 1;
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
@@ -81,6 +90,7 @@ function mouse_down(event) {
       } else {
         console.log("Not verified!");
         wrongSound.play();
+        cardWiggle(currentCard);
       }
       cardFlip(cardArr[i]);
       break;
@@ -197,6 +207,17 @@ function cardFlip(card) {
   }
 }
 
+function cardWiggle(card) {
+  gsap.to(card.valObj, {
+    duration: 0.5,
+    ease: CustomWiggle.create("myWig", {
+      wiggles: 5,
+      type: "easeOut",
+    }),
+    xVal: card.valObj.xVal - 20,
+  });
+}
+
 // deck creation, access, card population and depopulation
 async function cardMaker(deck, x, y) {
   let newCard = new Image();
@@ -226,8 +247,8 @@ async function cardMaker(deck, x, y) {
       };
       gsap.to(newCard.valObj, {
         rotVal: randRotInRads(),
-        xVal: canvas.width / 2 + randOffset(600),
-        yVal: canvas.height / 2 + randOffset(350),
+        xVal: screenWidth / 2 + randOffset(screenWidth / 4),
+        yVal: screenHeight / 2 + randOffset(screenHeight / 4),
         ease: "power4.out",
         duration: 1,
       });
