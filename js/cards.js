@@ -29,6 +29,9 @@ correctSound.playbackRate = 2;
 const screenWidth = canvas.width;
 const screenHeight = canvas.height;
 let decks = 1;
+let hearts = 3;
+let heartArr = [];
+let brokenHeart = [];
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let is_dragging = false;
@@ -91,6 +94,14 @@ function mouse_down(event) {
         console.log("Not verified!");
         wrongSound.play();
         cardWiggle(currentCard);
+        hearts = hearts - 1;
+        for (let i = 0; i < heartArr.length; i++) {
+          if (i + 1 > hearts && heartArr[i].valObj.full === true) {
+            heartBreaker(heartArr[i]);
+            heartArr[i].valObj.full = false;
+            heartArr[i].src = "assets/images/heartContainer.png";
+          }
+        }
       }
       cardFlip(cardArr[i]);
       break;
@@ -217,6 +228,65 @@ function cardWiggle(card) {
     xVal: card.valObj.xVal - 20,
   });
 }
+
+function heartBreaker(heart) {
+  let heartL = new Image();
+  heartL.src = "assets/images/bHeartL.png";
+  heartL.valObj = {
+    xVal: heart.valObj.xVal,
+    yVal: heart.valObj.yVal,
+    rotVal: 0,
+  };
+  gsap.to(heartL.valObj, {
+    duration: 1,
+    xVal: heartL.valObj.xVal - heartL.width * 2,
+    yVal: screenHeight + heartL.height,
+    rotVal: -(90 * Math.PI) / 180,
+    ease: "power4.in",
+    onComplete: () => {
+      console.log("Be rid of me now!");
+    },
+  });
+  let heartR = new Image();
+  heartR.src = "assets/images/bHeartR.png";
+  heartR.valObj = {
+    xVal: heart.valObj.xVal,
+    yVal: heart.valObj.yVal,
+    rotVal: 0,
+  };
+  gsap.to(heartR.valObj, {
+    duration: 1,
+    xVal: heartR.valObj.xVal + heartR.width * 2,
+    yVal: screenHeight + heartR.height,
+    rotVal: (90 * Math.PI) / 180,
+    ease: "power4.in",
+    onComplete: () => {
+      console.log("Be rid of me as well!");
+    },
+  });
+  brokenHeart.push(heartL);
+  brokenHeart.push(heartR);
+}
+
+function heartContainers(x, y) {
+  for (let i = 0; i < hearts; i++) {
+    let newHeart = new Image();
+    newHeart.src = "assets/images/fullContainer.png";
+    let xVal = x;
+    if (i !== 0) {
+      xVal = x + i * newHeart.width;
+    }
+    newHeart.valObj = {
+      xVal: xVal,
+      yVal: y,
+      image: newHeart.src,
+      full: true,
+    };
+    heartArr.push(newHeart);
+  }
+}
+
+heartContainers(screenWidth / 2, screenHeight / 2);
 
 // deck creation, access, card population and depopulation
 async function cardMaker(deck, x, y) {
@@ -418,6 +488,31 @@ gsap.ticker.add(() => {
       ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal);
       ctx.scale(guessCard.valObj.xScale, 1);
       ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
+      ctx.restore();
+    }
+  }
+  if (heartArr.length > 0) {
+    for (let i = heartArr.length - 1; i > -1; i--) {
+      ctx.save();
+      ctx.translate(heartArr[i].valObj.xVal, heartArr[i].valObj.yVal);
+      ctx.drawImage(
+        heartArr[i],
+        -heartArr[i].width / 2,
+        -heartArr[i].height / 2,
+      );
+      ctx.restore();
+    }
+  }
+  if (brokenHeart.length > 0) {
+    for (let i = 0; i < brokenHeart.length; i++) {
+      ctx.save();
+      ctx.translate(brokenHeart[i].valObj.xVal, brokenHeart[i].valObj.yVal);
+      ctx.rotate(brokenHeart[i].valObj.rotVal);
+      ctx.drawImage(
+        brokenHeart[i],
+        -brokenHeart[i].width / 2,
+        -brokenHeart[i].height / 2,
+      );
       ctx.restore();
     }
   }
