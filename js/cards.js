@@ -35,8 +35,9 @@ let heartArr = [];
 let brokenHeart = [];
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
-let heartContImg = "assets/images/fullContainer.png"
+let heartContImg = "assets/images/fullContainer.png";
 let is_dragging = false;
+let gameOver = false;
 let currentCard = null;
 let cardIndex = null;
 let guessCard = null;
@@ -57,12 +58,16 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
-    heartContainers(screenWidth / 2, 0)
+    heartContainers(screenWidth / 2, 0);
     gsap.to(mainText, {
       opacity: 0,
       duration: 1,
       onComplete: () => {
         mainText.style.display = "none";
+        let pElement = document.createElement("p");
+        pElement.id = mainText.id;
+        mainText.replaceWith(pElement);
+        mainText = pElement;
         throwCards(5);
       },
     });
@@ -109,7 +114,9 @@ function mouse_down(event) {
             }
           }
           if (hearts === 0) {
-            console.log("game over")
+            console.log("game over");
+            gameOver = true;
+            clearScreen();
           }
         }
         cardFlip(cardArr[i]);
@@ -272,7 +279,7 @@ function heartBreaker(heart) {
     ease: "power4.outin",
     onComplete: () => {
       console.log("Be rid of me as well!");
-      brokenHeart.length = 0
+      brokenHeart.length = 0;
     },
   });
   brokenHeart.push(heartL);
@@ -283,9 +290,9 @@ function heartContainers(x, y) {
   for (let i = 0; i < hearts; i++) {
     let newHeart = new Image();
     newHeart.src = heartContImg;
-    let newX = x + newHeart.width * (maxHearts / 2)
+    let newX = x + newHeart.width * (maxHearts / 2);
     let xVal = newX - i * (newHeart.width * (maxHearts / 2));
-    let yVal = y + newHeart.height
+    let yVal = y + newHeart.height;
     newHeart.valObj = {
       xVal: xVal,
       yVal: yVal,
@@ -295,8 +302,8 @@ function heartContainers(x, y) {
     };
     gsap.to(newHeart.valObj, {
       duration: 1,
-      opacity: 1
-    })
+      opacity: 1,
+    });
     heartArr.push(newHeart);
   }
 }
@@ -399,6 +406,20 @@ async function cardOut(card) {
   });
 }
 
+function clearScreen() {
+  cardArr.forEach((elem) => {
+    gsap.to(elem.valObj, {
+      duration: 2,
+      yVal: screenHeight + elem.height,
+      rotVal: randRotInRads(),
+      ease: "power2.in",
+      onComplete: () => {
+        cardArr.length = 0;
+      },
+    });
+  });
+}
+
 // game logic
 function selectGuess() {
   if (guessCard === null) {
@@ -471,6 +492,13 @@ async function incrementer() {
     clearInterval(countDown);
     console.log("ended");
     selectGuess();
+    gsap.to(mainText, {
+      duration: 1,
+      opacity: 0,
+      onComplete: () => {
+        mainText.style.display = "none";
+      },
+    });
   }
 }
 
@@ -511,7 +539,7 @@ gsap.ticker.add(() => {
     for (let i = 0; i < heartArr.length; i++) {
       ctx.save();
       ctx.translate(heartArr[i].valObj.xVal, heartArr[i].valObj.yVal);
-      ctx.globalAlpha = heartArr[i].valObj.opacity
+      ctx.globalAlpha = heartArr[i].valObj.opacity;
       ctx.drawImage(
         heartArr[i],
         -heartArr[i].width / 2,
