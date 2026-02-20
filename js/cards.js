@@ -29,11 +29,13 @@ correctSound.playbackRate = 2;
 const screenWidth = canvas.width;
 const screenHeight = canvas.height;
 let decks = 1;
-let hearts = 3;
+let maxHearts = 3;
+let hearts = maxHearts;
 let heartArr = [];
 let brokenHeart = [];
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
+let heartContImg = "assets/images/fullContainer.png"
 let is_dragging = false;
 let currentCard = null;
 let cardIndex = null;
@@ -55,6 +57,7 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
+    heartContainers(screenWidth / 2, 0)
     gsap.to(mainText, {
       opacity: 0,
       duration: 1,
@@ -79,34 +82,41 @@ function mouse_down(event) {
   event.preventDefault();
   startX = event.clientX;
   startY = event.clientY;
-  for (let i = cardArr.length - 1; i > -1; i--) {
-    if (inRotatedRect(event.clientX, event.clientY, cardArr[i])) {
-      console.log("Yes!");
-      console.log(cardArr[i].valObj.cardVal);
-      currentCard = cardArr[i];
-      cardIndex = i;
-      //is_dragging = true;
-      console.log("guessVal:" + guessCard);
-      if (checkGuess(guessCard, currentCard) === true) {
-        cardOut(currentCard);
-        correctSound.play();
-      } else {
-        console.log("Not verified!");
-        wrongSound.play();
-        cardWiggle(currentCard);
-        hearts = hearts - 1;
-        for (let i = 0; i < heartArr.length; i++) {
-          if (i + 1 > hearts && heartArr[i].valObj.full === true) {
-            heartBreaker(heartArr[i]);
-            heartArr[i].valObj.full = false;
-            heartArr[i].src = "assets/images/heartContainer.png";
+  if (hearts > 0) {
+    for (let i = cardArr.length - 1; i > -1; i--) {
+      if (inRotatedRect(event.clientX, event.clientY, cardArr[i])) {
+        console.log("Yes!");
+        console.log(cardArr[i].valObj.cardVal);
+        currentCard = cardArr[i];
+        cardIndex = i;
+        //is_dragging = true;
+        console.log("guessVal:" + guessCard);
+        if (checkGuess(guessCard, currentCard) === true) {
+          cardOut(currentCard);
+          correctSound.play();
+        } else {
+          console.log("Not verified!");
+          wrongSound.play();
+          cardWiggle(currentCard);
+          hearts = hearts - 1;
+          if (hearts >= 0) {
+            for (let i = hearts; i < maxHearts; i++) {
+              if (heartArr[i].valObj.full === true) {
+                heartBreaker(heartArr[i]);
+                heartArr[i].valObj.full = false;
+                heartArr[i].src = "assets/images/heartContainer.png";
+              }
+            }
+          }
+          if (hearts === 0) {
+            console.log("game over")
           }
         }
+        cardFlip(cardArr[i]);
+        break;
+      } else {
+        console.log("No!");
       }
-      cardFlip(cardArr[i]);
-      break;
-    } else {
-      console.log("No!");
     }
   }
 }
@@ -242,7 +252,7 @@ function heartBreaker(heart) {
     xVal: heartL.valObj.xVal - heartL.width * 2,
     yVal: screenHeight + heartL.height,
     rotVal: -(90 * Math.PI) / 180,
-    ease: "power4.in",
+    ease: "power4.outin",
     onComplete: () => {
       console.log("Be rid of me now!");
     },
@@ -259,9 +269,10 @@ function heartBreaker(heart) {
     xVal: heartR.valObj.xVal + heartR.width * 2,
     yVal: screenHeight + heartR.height,
     rotVal: (90 * Math.PI) / 180,
-    ease: "power4.in",
+    ease: "power4.outin",
     onComplete: () => {
       console.log("Be rid of me as well!");
+      brokenHeart.length = 0
     },
   });
   brokenHeart.push(heartL);
@@ -271,22 +282,24 @@ function heartBreaker(heart) {
 function heartContainers(x, y) {
   for (let i = 0; i < hearts; i++) {
     let newHeart = new Image();
-    newHeart.src = "assets/images/fullContainer.png";
-    let xVal = x;
-    if (i !== 0) {
-      xVal = x + i * newHeart.width;
-    }
+    newHeart.src = heartContImg;
+    let newX = x + newHeart.width * (maxHearts / 2)
+    let xVal = newX - i * (newHeart.width * (maxHearts / 2));
+    let yVal = y + newHeart.height
     newHeart.valObj = {
       xVal: xVal,
-      yVal: y,
+      yVal: yVal,
       image: newHeart.src,
       full: true,
+      opacity: 0,
     };
+    gsap.to(newHeart.valObj, {
+      duration: 1,
+      opacity: 1
+    })
     heartArr.push(newHeart);
   }
 }
-
-heartContainers(screenWidth / 2, screenHeight / 2);
 
 // deck creation, access, card population and depopulation
 async function cardMaker(deck, x, y) {
@@ -473,6 +486,9 @@ async function memoTimer(time) {
 
 // update loop
 gsap.ticker.add(() => {
+  //resizeCanvas()
+  //screenWidth = canvas.width;
+  //screenHeight = canvas.height;
   if (cardArr.length > 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < cardArr.length; i++) {
@@ -492,9 +508,10 @@ gsap.ticker.add(() => {
     }
   }
   if (heartArr.length > 0) {
-    for (let i = heartArr.length - 1; i > -1; i--) {
+    for (let i = 0; i < heartArr.length; i++) {
       ctx.save();
       ctx.translate(heartArr[i].valObj.xVal, heartArr[i].valObj.yVal);
+      ctx.globalAlpha = heartArr[i].valObj.opacity
       ctx.drawImage(
         heartArr[i],
         -heartArr[i].width / 2,
