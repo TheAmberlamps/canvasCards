@@ -106,9 +106,12 @@ function mouse_down(event) {
           hearts = hearts - 1;
           if (hearts >= 0) {
             for (let i = hearts; i < maxHearts; i++) {
-              if (heartArr[i].valObj.full === true) {
-                heartBreaker(heartArr[i]);
+              console.log("we assigning some wild mess out here")
+              if (heartArr[i].valObj.full === true ) {
+                console.log(heartArr[i].valObj.full)
                 heartArr[i].valObj.full = false;
+                console.log(heartArr[i].valObj.full)
+                heartBreaker(heartArr[i]);
                 heartArr[i].src = "assets/images/heartContainer.png";
               }
             }
@@ -248,63 +251,73 @@ function cardWiggle(card) {
 
 function heartBreaker(heart) {
   let heartL = new Image();
+  heartL.onload = function () {
+    heartL.valObj = {
+      xVal: heart.valObj.xVal,
+      yVal: heart.valObj.yVal,
+      rotVal: 0,
+    };
+    gsap.to(heartL.valObj, {
+      duration: 1,
+      xVal: heartL.valObj.xVal - heartL.width * 2,
+      yVal: screenHeight + heartL.height,
+      rotVal: -(90 * Math.PI) / 180,
+      ease: "power4.outin",
+      onComplete: () => {
+        console.log("Be rid of me now!");
+        brokenHeart.length = 0;
+      },
+    })
+    brokenHeart.push(heartL);
+  };
   heartL.src = "assets/images/bHeartL.png";
-  heartL.valObj = {
-    xVal: heart.valObj.xVal,
-    yVal: heart.valObj.yVal,
-    rotVal: 0,
-  };
-  gsap.to(heartL.valObj, {
-    duration: 1,
-    xVal: heartL.valObj.xVal - heartL.width * 2,
-    yVal: screenHeight + heartL.height,
-    rotVal: -(90 * Math.PI) / 180,
-    ease: "power4.outin",
-    onComplete: () => {
-      console.log("Be rid of me now!");
-    },
-  });
+  
   let heartR = new Image();
-  heartR.src = "assets/images/bHeartR.png";
-  heartR.valObj = {
-    xVal: heart.valObj.xVal,
-    yVal: heart.valObj.yVal,
-    rotVal: 0,
+  heartR.onload = function () {
+    heartR.valObj = {
+      xVal: heart.valObj.xVal,
+      yVal: heart.valObj.yVal,
+      rotVal: 0,
+    };
+    gsap.to(heartR.valObj, {
+      duration: 1,
+      xVal: heartR.valObj.xVal + heartR.width * 2,
+      yVal: screenHeight + heartR.height,
+      rotVal: (90 * Math.PI) / 180,
+      ease: "power4.outin",
+      onComplete: () => {
+        console.log("Be rid of me as well!");
+        brokenHeart.length = 0;
+      },
+    });
+    brokenHeart.push(heartR);
   };
-  gsap.to(heartR.valObj, {
-    duration: 1,
-    xVal: heartR.valObj.xVal + heartR.width * 2,
-    yVal: screenHeight + heartR.height,
-    rotVal: (90 * Math.PI) / 180,
-    ease: "power4.outin",
-    onComplete: () => {
-      console.log("Be rid of me as well!");
-      brokenHeart.length = 0;
-    },
-  });
-  brokenHeart.push(heartL);
-  brokenHeart.push(heartR);
+  heartR.src = "assets/images/bHeartR.png";
 }
 
+
+// Running this function as a generator is fine but re-running it seems to introduce conflicts
 function heartContainers(x, y) {
   for (let i = 0; i < hearts; i++) {
     let newHeart = new Image();
+    newHeart.onload = function () {
+      let newX = x + newHeart.width * (maxHearts / 2);
+      let xVal = newX - i * (newHeart.width * (maxHearts / 2));
+      let yVal = y + newHeart.height;
+      newHeart.valObj = {
+        xVal: xVal,
+        yVal: yVal,
+        image: newHeart.src,
+        full: true,
+        opacity: 0,
+      };
+      gsap.to(newHeart.valObj, {
+        duration: 1,
+        opacity: 1,
+      });
+      heartArr.push(newHeart);
+    }
     newHeart.src = heartContImg;
-    let newX = x + newHeart.width * (maxHearts / 2);
-    let xVal = newX - i * (newHeart.width * (maxHearts / 2));
-    let yVal = y + newHeart.height;
-    newHeart.valObj = {
-      xVal: xVal,
-      yVal: yVal,
-      image: newHeart.src,
-      full: true,
-      opacity: 0,
-    };
-    gsap.to(newHeart.valObj, {
-      duration: 1,
-      opacity: 1,
-    });
-    heartArr.push(newHeart);
   }
 }
 
