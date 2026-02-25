@@ -105,13 +105,11 @@ function mouse_down(event) {
           cardWiggle(currentCard);
           hearts = hearts - 1;
           if (hearts >= 0) {
-            for (let i = hearts; i < maxHearts; i++) {
-              console.log("we assigning some wild mess out here")
-              if (heartArr[i].valObj.full === true ) {
-                console.log(heartArr[i].valObj.full)
-                heartArr[i].valObj.full = false;
-                console.log(heartArr[i].valObj.full)
+            for (let i = 0; i < maxHearts - hearts; i++) {
+              console.log("we assigning some wild mess out here");
+              if (heartArr[i].valObj.full === true) {
                 heartBreaker(heartArr[i]);
+                heartArr[i].valObj.full = false;
                 heartArr[i].src = "assets/images/heartContainer.png";
               }
             }
@@ -267,11 +265,11 @@ function heartBreaker(heart) {
         console.log("Be rid of me now!");
         brokenHeart.length = 0;
       },
-    })
+    });
     brokenHeart.push(heartL);
   };
   heartL.src = "assets/images/bHeartL.png";
-  
+
   let heartR = new Image();
   heartR.onload = function () {
     heartR.valObj = {
@@ -295,14 +293,13 @@ function heartBreaker(heart) {
   heartR.src = "assets/images/bHeartR.png";
 }
 
-
 // Running this function as a generator is fine but re-running it seems to introduce conflicts
 function heartContainers(x, y) {
   for (let i = 0; i < hearts; i++) {
     let newHeart = new Image();
-    newHeart.onload = function () {
-      let newX = x + newHeart.width * (maxHearts / 2);
-      let xVal = newX - i * (newHeart.width * (maxHearts / 2));
+    (newHeart.addEventListener("load", () => {
+      let newX = x - newHeart.width * (maxHearts / 2);
+      let xVal = newX + i * (newHeart.width * (maxHearts / 2));
       let yVal = y + newHeart.height;
       newHeart.valObj = {
         xVal: xVal,
@@ -315,8 +312,9 @@ function heartContainers(x, y) {
         duration: 1,
         opacity: 1,
       });
-      heartArr.push(newHeart);
-    }
+    }),
+      { once: true });
+    heartArr[i] = newHeart;
     newHeart.src = heartContImg;
   }
 }
