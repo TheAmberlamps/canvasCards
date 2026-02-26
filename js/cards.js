@@ -108,9 +108,11 @@ function mouse_down(event) {
             for (let i = 0; i < maxHearts - hearts; i++) {
               console.log("we assigning some wild mess out here");
               if (heartArr[i].valObj.full === true) {
+                console.log("heartArr[i].valObj.full: " + heartArr[i].valObj.full)
                 heartBreaker(heartArr[i]);
                 heartArr[i].valObj.full = false;
                 heartArr[i].src = "assets/images/heartContainer.png";
+                console.log("heartArr[i].valObj.full: " + heartArr[i].valObj.full)
               }
             }
           }
@@ -118,11 +120,36 @@ function mouse_down(event) {
             console.log("game over");
             gameOver = true;
             clearScreen();
+            heartArr.forEach((element) => {
+              gsap.to(element.valObj, {
+                opacity: 0,
+                duration: 1,
+                onComplete: () => {
+                  heartArr.length = 0
+                }
+              })
+            })
+            title.style.display = "block"
+            gsap.to(title, {
+              opacity: 1,
+              duration: 1
+            })
+            mainText.textContent = "START"
+            mainText.style.display = "inline-block"
+            let pElement = document.createElement("button");
+            pElement.textContent = "START"
+            pElement.id = mainText.id;
+            mainText.replaceWith(pElement);
+            mainText = pElement;
+            gsap.to(mainText, {
+              opacity: 1,
+              duration: 1,
+            });
           }
         }
         cardFlip(cardArr[i]);
         break;
-      } else {
+      } else { 
         console.log("No!");
       }
     }
@@ -297,17 +324,18 @@ function heartBreaker(heart) {
 function heartContainers(x, y) {
   for (let i = 0; i < hearts; i++) {
     let newHeart = new Image();
+    // initializing the valObj oustide of the load event prevents it from being re-written when changing the image source
+    newHeart.valObj = {
+      xVal: 0,
+      yVal: 0,
+      image: newHeart.src,
+      full: true,
+      opacity: 0,
+    };
     (newHeart.addEventListener("load", () => {
       let newX = x - newHeart.width * (maxHearts / 2);
-      let xVal = newX + i * (newHeart.width * (maxHearts / 2));
-      let yVal = y + newHeart.height;
-      newHeart.valObj = {
-        xVal: xVal,
-        yVal: yVal,
-        image: newHeart.src,
-        full: true,
-        opacity: 0,
-      };
+      newHeart.valObj.xVal = newX + i * (newHeart.width * (maxHearts / 2));
+      newHeart.valObj.yVal = y + newHeart.height;
       gsap.to(newHeart.valObj, {
         duration: 1,
         opacity: 1,
@@ -538,13 +566,13 @@ gsap.ticker.add(() => {
       ctx.drawImage(cardArr[i], -cardArr[i].width / 2, -cardArr[i].height / 2);
       ctx.restore();
     }
-    if (guessCard) {
+  }
+  if (guessCard) {
       ctx.save();
       ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal);
       ctx.scale(guessCard.valObj.xScale, 1);
       ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
       ctx.restore();
-    }
   }
   if (heartArr.length > 0) {
     for (let i = 0; i < heartArr.length; i++) {
