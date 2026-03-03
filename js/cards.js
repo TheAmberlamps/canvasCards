@@ -41,6 +41,7 @@ let brokenHeart = [];
 let cardArr = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let heartContImg = "assets/images/fullContainer.png";
+let canDrag = false;
 let is_dragging = false;
 let gameOver = false;
 let currentCard = null;
@@ -65,6 +66,7 @@ mainText.addEventListener(
   () => {
     console.log("Yep");
     heartContainers(screenWidth / 2, 0);
+    selectGuess();
     gsap.to(mainText, {
       opacity: 0,
       duration: 1,
@@ -100,39 +102,43 @@ function mouse_down(event) {
         console.log(cardArr[i].valObj.cardVal);
         currentCard = cardArr[i];
         cardIndex = i;
-        //is_dragging = true;
+        if (canDrag) {
+          is_dragging = true;
+        }
         console.log("guessVal:" + guessCard);
-        if (checkGuess(guessCard, currentCard) === true) {
-          cardOut(currentCard);
-          correctSound.play();
-        } else {
-          console.log("Not verified!");
-          wrongSound.play();
-          cardWiggle(currentCard);
-          hearts = hearts - 1;
-          if (hearts >= 0) {
-            for (let i = 0; i < maxHearts - hearts; i++) {
-              console.log("we assigning some wild mess out here");
-              if (heartArr[i].valObj.full === true) {
-                console.log(
-                  "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
-                );
-                heartBreaker(heartArr[i]);
-                heartArr[i].valObj.full = false;
-                heartArr[i].src = "assets/images/heartContainer.png";
-                console.log(
-                  "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
-                );
+        if (guessCard) {
+          if (checkGuess(guessCard, currentCard) === true) {
+            cardOut(currentCard);
+            correctSound.play();
+          } else {
+            console.log("Not verified!");
+            wrongSound.play();
+            cardWiggle(currentCard);
+            hearts = hearts - 1;
+            if (hearts >= 0) {
+              for (let i = 0; i < maxHearts - hearts; i++) {
+                console.log("we assigning some wild mess out here");
+                if (heartArr[i].valObj.full === true) {
+                  console.log(
+                    "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
+                  );
+                  heartBreaker(heartArr[i]);
+                  heartArr[i].valObj.full = false;
+                  heartArr[i].src = "assets/images/heartContainer.png";
+                  console.log(
+                    "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
+                  );
+                }
               }
             }
-          }
-          if (hearts === 0) {
-            console.log("game over");
-            clearScreen();
-            gameReset();
+            if (hearts === 0) {
+              console.log("game over");
+              clearScreen();
+              gameReset();
+            }
           }
         }
-        cardFlip(cardArr[i]);
+        //cardFlip(cardArr[i]);
         break;
       } else {
         console.log("No!");
@@ -245,6 +251,8 @@ function cardFlip(card) {
         }
       },
     });
+  } else {
+    console.log("flip failed");
   }
 }
 
@@ -446,20 +454,25 @@ function clearScreen() {
 function selectGuess() {
   if (guessCard === null) {
     guessCard = new Image();
-    guessInd = [Math.floor(Math.random() * (cardArr.length - 1))];
-    let guessVal = cardArr[guessInd].valObj;
-    guessCard.src = guessVal.cardImg;
+    //guessInd = [Math.floor(Math.random() * (cardArr.length - 1))];
+    //let guessVal = cardArr[guessInd].valObj;
+    //guessCard.src = guessVal.cardImg;
+    //guessCard.src = cardBack;
+    guessCard.valObj = {
+      xVal: 0,
+      yVal: 0,
+      xScale: 1,
+      flipping: false,
+      flippable: false,
+      opacity: 0,
+      cardImg: null,
+    };
     guessCard.addEventListener(
       "load",
       () => {
-        guessCard.valObj = {
-          xVal: canvas.width + guessCard.width,
-          yVal: canvas.height / 2,
-          xScale: 1,
-          flipping: false,
-          flippable: false,
-          cardImg: guessVal.cardImg,
-        };
+        guessCard.valObj.opacity = 1;
+        guessCard.valObj.xVal = screenWidth + guessCard.width;
+        guessCard.valObj.yVal = screenHeight / 2;
         gsap.to(guessCard.valObj, {
           xVal: canvas.width - guessCard.width,
           yVal: canvas.height / 2,
@@ -468,6 +481,7 @@ function selectGuess() {
       },
       { once: true },
     );
+    guessCard.src = cardBack;
   } else {
     guessCard.valObj.flippable = true;
     cardFlip(guessCard);
@@ -475,8 +489,12 @@ function selectGuess() {
 }
 
 function newGuess(card) {
-  cardArr.splice(guessInd, 1);
+  if (guessInd) {
+    console.log("splicing array");
+    cardArr.splice(guessInd, 1);
+  }
   if (cardArr.length > 0) {
+    console.log("assigning guessInd");
     guessInd = [Math.floor(Math.random() * (cardArr.length - 1))];
     card.src = cardArr[guessInd].valObj.cardImg;
     card.valObj.cardImg = card.src;
@@ -498,14 +516,16 @@ function newGuess(card) {
       duration: 1,
       onComplete: () => {
         guessCard = null;
+        guessInd = null;
         throwCards(cardAmt);
+        selectGuess();
       },
     });
   }
 }
 
 function checkGuess(guess, currCard) {
-  if (guess.valObj.cardImg === currCard.valObj.cardImg) {
+  if (guess && guess.valObj.cardImg === currCard.valObj.cardImg) {
     selectGuess();
     return true;
   } else {
@@ -516,6 +536,7 @@ function checkGuess(guess, currCard) {
 async function gameReset() {
   cardAmt = startingCardAmt;
   hearts = maxHearts;
+  guessInd = null;
   gsap.to(guessCard.valObj, {
     xVal: screenWidth + guessCard.width,
     duration: 1,
@@ -536,6 +557,7 @@ async function gameReset() {
     () => {
       console.log("Yep");
       heartContainers(screenWidth / 2, 0);
+      selectGuess();
       gsap.to(mainText, {
         opacity: 0,
         duration: 1,
@@ -589,7 +611,9 @@ async function incrementer() {
   if (countVal < 1) {
     clearInterval(countDown);
     console.log("ended");
-    selectGuess();
+    guessCard.valObj.flippable = true;
+    cardFlip(guessCard);
+    canDrag = true;
     gsap.to(mainText, {
       duration: 1,
       opacity: 0,
@@ -616,8 +640,8 @@ gsap.ticker.add(() => {
   //resizeCanvas()
   //screenWidth = canvas.width;
   //screenHeight = canvas.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (cardArr.length > 0) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < cardArr.length; i++) {
       ctx.save();
       ctx.translate(cardArr[i].valObj.xVal, cardArr[i].valObj.yVal);
@@ -630,6 +654,7 @@ gsap.ticker.add(() => {
   if (guessCard) {
     ctx.save();
     ctx.translate(guessCard.valObj.xVal, guessCard.valObj.yVal);
+    ctx.globalAlpha = guessCard.valObj.opacity;
     ctx.scale(guessCard.valObj.xScale, 1);
     ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
     ctx.restore();
