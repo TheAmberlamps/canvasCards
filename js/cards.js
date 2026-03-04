@@ -48,6 +48,7 @@ let currentCard = null;
 let cardIndex = null;
 let guessCard = null;
 let arrMut = false;
+let guessArea;
 let countDown;
 let guessInd;
 let startX;
@@ -67,6 +68,7 @@ mainText.addEventListener(
     console.log("Yep");
     heartContainers(screenWidth / 2, 0);
     selectGuess();
+    guessAreaInit()
     gsap.to(mainText, {
       opacity: 0,
       duration: 1,
@@ -76,6 +78,7 @@ mainText.addEventListener(
         pElement.id = mainText.id;
         mainText.replaceWith(pElement);
         mainText = pElement;
+        canDrag = true
         throwCards(cardAmt);
       },
     });
@@ -107,36 +110,7 @@ function mouse_down(event) {
         }
         console.log("guessVal:" + guessCard);
         if (guessCard) {
-          if (checkGuess(guessCard, currentCard) === true) {
-            cardOut(currentCard);
-            correctSound.play();
-          } else {
-            console.log("Not verified!");
-            wrongSound.play();
-            cardWiggle(currentCard);
-            hearts = hearts - 1;
-            if (hearts >= 0) {
-              for (let i = 0; i < maxHearts - hearts; i++) {
-                console.log("we assigning some wild mess out here");
-                if (heartArr[i].valObj.full === true) {
-                  console.log(
-                    "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
-                  );
-                  heartBreaker(heartArr[i]);
-                  heartArr[i].valObj.full = false;
-                  heartArr[i].src = "assets/images/heartContainer.png";
-                  console.log(
-                    "heartArr[i].valObj.full: " + heartArr[i].valObj.full,
-                  );
-                }
-              }
-            }
-            if (hearts === 0) {
-              console.log("game over");
-              clearScreen();
-              gameReset();
-            }
-          }
+          //evaluator()
         }
         //cardFlip(cardArr[i]);
         break;
@@ -472,10 +446,9 @@ function selectGuess() {
       () => {
         guessCard.valObj.opacity = 1;
         guessCard.valObj.xVal = screenWidth + guessCard.width;
-        guessCard.valObj.yVal = screenHeight / 2;
+        guessCard.valObj.yVal = screenHeight - screenHeight + guessCard.height;
         gsap.to(guessCard.valObj, {
           xVal: canvas.width - guessCard.width,
-          yVal: canvas.height / 2,
           duration: 0.5,
         });
       },
@@ -530,6 +503,51 @@ function checkGuess(guess, currCard) {
     return true;
   } else {
     return false;
+  }
+}
+
+function guessAreaInit() {
+  guessArea = new Image()
+  guessArea.src = cardBack
+  guessArea.valObj = {
+    xVal: screenWidth - guessArea.width,
+    yVal: screenHeight - guessArea.height,
+    opacity: 0
+  }
+  guessArea.addEventListener("load", () => {
+    gsap.to(guessArea.valObj, {
+      duration: 1,
+      opacity: 0.5
+    })
+  })
+}
+
+function evaluator() {
+  if (checkGuess(guessCard, currentCard) === true) {
+    cardOut(currentCard);
+    correctSound.play();
+  } else {
+    console.log("Not verified!");
+    wrongSound.play();
+    cardWiggle(currentCard);
+    hearts = hearts - 1;
+    if (hearts >= 0) {
+      for (let i = 0; i < maxHearts - hearts; i++) {
+        console.log("we assigning some wild mess out here");
+        if (heartArr[i].valObj.full === true) {
+          console.log("heartArr[i].valObj.full: " + heartArr[i].valObj.full);
+          heartBreaker(heartArr[i]);
+          heartArr[i].valObj.full = false;
+          heartArr[i].src = "assets/images/heartContainer.png";
+          console.log("heartArr[i].valObj.full: " + heartArr[i].valObj.full);
+        }
+      }
+    }
+    if (hearts === 0) {
+      console.log("game over");
+      clearScreen();
+      gameReset();
+    }
   }
 }
 
@@ -613,7 +631,7 @@ async function incrementer() {
     console.log("ended");
     guessCard.valObj.flippable = true;
     cardFlip(guessCard);
-    canDrag = true;
+    //canDrag = true;
     gsap.to(mainText, {
       duration: 1,
       opacity: 0,
@@ -657,6 +675,14 @@ gsap.ticker.add(() => {
     ctx.globalAlpha = guessCard.valObj.opacity;
     ctx.scale(guessCard.valObj.xScale, 1);
     ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
+    ctx.restore();
+  }
+  if (guessArea) {
+    ctx.save();
+    ctx.translate(guessArea.valObj.xVal, guessArea.valObj.yVal);
+    ctx.globalAlpha = guessArea.valObj.opacity;
+    ctx.scale(guessArea.valObj.xScale, 1);
+    ctx.drawImage(guessArea, -guessArea.width / 2, -guessArea.height / 2);
     ctx.restore();
   }
   if (heartArr.length > 0) {
