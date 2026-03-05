@@ -68,7 +68,7 @@ mainText.addEventListener(
     console.log("Yep");
     heartContainers(screenWidth / 2, 0);
     selectGuess();
-    guessAreaInit()
+    guessAreaInit();
     gsap.to(mainText, {
       opacity: 0,
       duration: 1,
@@ -78,7 +78,7 @@ mainText.addEventListener(
         pElement.id = mainText.id;
         mainText.replaceWith(pElement);
         mainText = pElement;
-        canDrag = true
+        canDrag = true;
         throwCards(cardAmt);
       },
     });
@@ -107,6 +107,20 @@ function mouse_down(event) {
         cardIndex = i;
         if (canDrag) {
           is_dragging = true;
+          currentCard.valObj.savedX = currentCard.valObj.xVal;
+          currentCard.valObj.savedY = currentCard.valObj.yVal;
+          console.log("Is dragging now true");
+          // OK this is going to take some simple mathing, I have to determine the most logical new rotation value to apply based on the existing rotation
+          // for example instead of rotating a card that was spun 250 degrees back to 0 degrees, to 'straighten it out' you would rotate it to 180 degrees. If instead it was spun to say 300 degrees, instead of rotating it back to 0 you would complete a full revolution by spinning it to 360, not 0.
+          // hmm I also have to take into account the potential for negative values... I guess in that case do the evaluation using absolute math and conditionally set the newRot to a negative value if the current rotation is less than 0
+          let newRot = 0;
+          if (currentCard.valObj.rotVal < 0) {
+            newRot = -0;
+          }
+          gsap.to(currentCard.valObj, {
+            duration: 0.5,
+            rotVal: newRot,
+          });
         }
         console.log("guessVal:" + guessCard);
         if (guessCard) {
@@ -127,6 +141,13 @@ function mouse_up(event) {
   }
   event.preventDefault();
   is_dragging = false;
+  console.log("stopped dragging");
+  if (
+    inRotatedRect(currentCard.valObj.xVal, currentCard.valObj.yVal, guessArea)
+  ) {
+    console.log("card is located inside of guess area");
+    evaluator();
+  }
 }
 
 function mouse_move(event) {
@@ -187,6 +208,13 @@ function randRotInRads() {
     return -(Math.floor(Math.random() * 360) * Math.PI) / 180;
   }
 }
+
+document.addEventListener("keydown", (event) => {
+  console.log("event key: " + event.key);
+  if (event.key === "p") {
+    console.log(randRotInRads());
+  }
+});
 
 function randOffset(offset) {
   if (Math.random() > 0.5) {
@@ -331,6 +359,8 @@ async function cardMaker(deck, x, y) {
       newCard.valObj = {
         xVal: x,
         yVal: y,
+        savedX: 0,
+        savedY: 0,
         rotVal: 0,
         xScale: 1,
         yScale: 1,
@@ -446,7 +476,8 @@ function selectGuess() {
       () => {
         guessCard.valObj.opacity = 1;
         guessCard.valObj.xVal = screenWidth + guessCard.width;
-        guessCard.valObj.yVal = screenHeight - screenHeight + guessCard.height;
+        guessCard.valObj.yVal =
+          screenHeight - screenHeight + guessCard.height / 1.5;
         gsap.to(guessCard.valObj, {
           xVal: canvas.width - guessCard.width,
           duration: 0.5,
@@ -507,19 +538,22 @@ function checkGuess(guess, currCard) {
 }
 
 function guessAreaInit() {
-  guessArea = new Image()
-  guessArea.src = cardBack
+  guessArea = new Image();
   guessArea.valObj = {
-    xVal: screenWidth - guessArea.width,
-    yVal: screenHeight - guessArea.height,
-    opacity: 0
-  }
+    xVal: screenWidth,
+    yVal: screenHeight,
+    rotVal: 0,
+    opacity: 0,
+  };
   guessArea.addEventListener("load", () => {
-    gsap.to(guessArea.valObj, {
-      duration: 1,
-      opacity: 0.5
-    })
-  })
+    ((guessArea.valObj.xVal = screenWidth - guessArea.width),
+      (guessArea.valObj.yVal = screenHeight - guessArea.height / 1.5),
+      gsap.to(guessArea.valObj, {
+        duration: 1,
+        opacity: 0.5,
+      }));
+  });
+  guessArea.src = cardBack;
 }
 
 function evaluator() {
@@ -529,7 +563,13 @@ function evaluator() {
   } else {
     console.log("Not verified!");
     wrongSound.play();
-    cardWiggle(currentCard);
+    //cardWiggle(currentCard);
+    gsap.to(currentCard.valObj, {
+      duration: 0.5,
+      xVal: currentCard.valObj.savedX,
+      yVal: currentCard.valObj.savedY,
+      rotVal: randRotInRads(),
+    });
     hearts = hearts - 1;
     if (hearts >= 0) {
       for (let i = 0; i < maxHearts - hearts; i++) {
@@ -659,6 +699,14 @@ gsap.ticker.add(() => {
   //screenWidth = canvas.width;
   //screenHeight = canvas.height;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (guessArea) {
+    ctx.save();
+    ctx.translate(guessArea.valObj.xVal, guessArea.valObj.yVal);
+    ctx.globalAlpha = guessArea.valObj.opacity;
+    ctx.scale(guessArea.valObj.xScale, 1);
+    ctx.drawImage(guessArea, -guessArea.width / 2, -guessArea.height / 2);
+    ctx.restore();
+  }
   if (cardArr.length > 0) {
     for (let i = 0; i < cardArr.length; i++) {
       ctx.save();
@@ -675,14 +723,6 @@ gsap.ticker.add(() => {
     ctx.globalAlpha = guessCard.valObj.opacity;
     ctx.scale(guessCard.valObj.xScale, 1);
     ctx.drawImage(guessCard, -guessCard.width / 2, -guessCard.height / 2);
-    ctx.restore();
-  }
-  if (guessArea) {
-    ctx.save();
-    ctx.translate(guessArea.valObj.xVal, guessArea.valObj.yVal);
-    ctx.globalAlpha = guessArea.valObj.opacity;
-    ctx.scale(guessArea.valObj.xScale, 1);
-    ctx.drawImage(guessArea, -guessArea.width / 2, -guessArea.height / 2);
     ctx.restore();
   }
   if (heartArr.length > 0) {
