@@ -59,6 +59,15 @@ canvas.onmouseup = mouse_up;
 canvas.onmousemove = mouse_move;
 canvas.onmouseout = mouse_out;
 
+// keyboard debugging thing
+
+document.addEventListener("keydown", (event) => {
+  console.log("event key: " + event.key);
+  if (event.key === "p") {
+    console.log(randRotInRads());
+  }
+});
+
 let title = document.getElementById("titleCard");
 let mainText = document.getElementById("startButton");
 mainText.textContent = "START";
@@ -66,6 +75,8 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
+    mainText.style.pointerEvents = 'none'
+    mainText.style.userSelect = 'none'
     heartContainers(screenWidth / 2, 0);
     selectGuess();
     guessAreaInit();
@@ -78,6 +89,8 @@ mainText.addEventListener(
         pElement.id = mainText.id;
         mainText.replaceWith(pElement);
         mainText = pElement;
+        mainText.style.pointerEvents = 'none'
+        mainText.style.userSelect = 'none'
         canDrag = true;
         throwCards(cardAmt);
       },
@@ -110,29 +123,34 @@ function mouse_down(event) {
           currentCard.valObj.savedX = currentCard.valObj.xVal;
           currentCard.valObj.savedY = currentCard.valObj.yVal;
           console.log("Is dragging now true");
-          // OK this is going to take some simple mathing, I have to determine the most logical new rotation value to apply based on the existing rotation
-          // for example instead of rotating a card that was spun 250 degrees back to 0 degrees, to 'straighten it out' you would rotate it to 180 degrees. If instead it was spun to say 300 degrees, instead of rotating it back to 0 you would complete a full revolution by spinning it to 360, not 0.
-          // hmm I also have to take into account the potential for negative values... I guess in that case do the evaluation using absolute math and conditionally set the newRot to a negative value if the current rotation is less than 0
-          let newRot = 0;
-          if (currentCard.valObj.rotVal < 0) {
-            newRot = -0;
-          }
-          gsap.to(currentCard.valObj, {
-            duration: 0.5,
-            rotVal: newRot,
-          });
-        }
-        console.log("guessVal:" + guessCard);
-        if (guessCard) {
-          //evaluator()
-        }
-        //cardFlip(cardArr[i]);
+          unRot(currentCard)
+          console.log("guessVal:" + guessCard);
         break;
-      } else {
+        } else {
         console.log("No!");
+        }
       }
     }
   }
+}
+
+function unRot(card) {
+  let oldRot = Math.abs(card.valObj.rotVal)
+  let newRot = 0;
+  if (oldRot > 1.571 && oldRot <= 4.712) {
+    newRot = 3.142
+  }
+  if (oldRot > 4.712 && oldRot <= 6.283) {
+    newRot = 6.283
+  }
+  if (currentCard.valObj.rotVal < 0) {
+    newRot = -newRot
+  }
+  gsap.to(card.valObj, {
+    duration: 0.25,
+    rotVal: newRot,
+  })
+  ;
 }
 
 function mouse_up(event) {
@@ -208,13 +226,6 @@ function randRotInRads() {
     return -(Math.floor(Math.random() * 360) * Math.PI) / 180;
   }
 }
-
-document.addEventListener("keydown", (event) => {
-  console.log("event key: " + event.key);
-  if (event.key === "p") {
-    console.log(randRotInRads());
-  }
-});
 
 function randOffset(offset) {
   if (Math.random() > 0.5) {
@@ -613,30 +624,35 @@ async function gameReset() {
   mainText.addEventListener(
     "click",
     () => {
-      console.log("Yep");
-      heartContainers(screenWidth / 2, 0);
-      selectGuess();
-      gsap.to(mainText, {
-        opacity: 0,
-        duration: 1,
-        onComplete: () => {
-          mainText.style.display = "none";
-          let pElement = document.createElement("p");
-          pElement.id = mainText.id;
-          mainText.replaceWith(pElement);
-          mainText = pElement;
-          throwCards(cardAmt);
-        },
-      });
-      gsap.to(title, {
-        opacity: 0,
-        duration: 1,
-        onComplete: () => {
-          title.style.display = "none";
-        },
-      });
-    },
-    { once: true },
+      if (cardArr.length === 0) {
+        console.log("Yep");
+        mainText.style.pointerEvents = 'none'
+        mainText.style.userSelect = 'none'
+        heartContainers(screenWidth / 2, 0);
+        selectGuess();
+        gsap.to(mainText, {
+          opacity: 0,
+          duration: 1,
+          onComplete: () => {
+            mainText.style.display = "none";
+            let pElement = document.createElement("p");
+            pElement.id = mainText.id;
+            mainText.replaceWith(pElement);
+            mainText = pElement;
+            mainText.style.pointerEvents = 'none'
+            mainText.style.userSelect = 'none'
+            throwCards(cardAmt);
+          }
+        });
+        gsap.to(title, {
+          opacity: 0,
+          duration: 1,
+          onComplete: () => {
+            title.style.display = "none";
+          },
+        });
+      }
+    }
   );
   gsap.to(mainText, {
     opacity: 1,
