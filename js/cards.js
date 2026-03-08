@@ -28,10 +28,12 @@ correctSound.playbackRate = 2;
 // global variables
 const screenWidth = canvas.width;
 const screenHeight = canvas.height;
+const gameTitle = "Canvas Cards";
 const startingCardAmt = 3;
 const maxHearts = 3;
 const countInit = 6;
 let decks = 1;
+let stageNum = 1;
 let newDeck = await genDeck(decks);
 let cardAmt = startingCardAmt;
 let hearts = maxHearts;
@@ -76,8 +78,8 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
-    mainText.style.pointerEvents = 'none'
-    mainText.style.userSelect = 'none'
+    mainText.style.pointerEvents = "none";
+    mainText.style.userSelect = "none";
     heartContainers(screenWidth / 2, 0);
     selectGuess();
     guessAreaInit();
@@ -90,8 +92,8 @@ mainText.addEventListener(
         pElement.id = mainText.id;
         mainText.replaceWith(pElement);
         mainText = pElement;
-        mainText.style.pointerEvents = 'none'
-        mainText.style.userSelect = 'none'
+        mainText.style.pointerEvents = "none";
+        mainText.style.userSelect = "none";
         canDrag = true;
         throwCards(cardAmt);
       },
@@ -100,7 +102,8 @@ mainText.addEventListener(
       opacity: 0,
       duration: 1,
       onComplete: () => {
-        title.style.display = "none";
+        title.style.opacity = 1;
+        title.innerText = "STAGE " + stageNum;
       },
     });
   },
@@ -124,11 +127,11 @@ function mouse_down(event) {
           currentCard.valObj.savedX = currentCard.valObj.xVal;
           currentCard.valObj.savedY = currentCard.valObj.yVal;
           console.log("Is dragging now true");
-          unRot(currentCard)
+          unRot(currentCard);
           console.log("guessVal:" + guessCard);
-        break;
+          break;
         } else {
-        console.log("No!");
+          console.log("No!");
         }
       }
     }
@@ -136,22 +139,21 @@ function mouse_down(event) {
 }
 
 function unRot(card) {
-  let oldRot = Math.abs(card.valObj.rotVal)
+  let oldRot = Math.abs(card.valObj.rotVal);
   let newRot = 0;
   if (oldRot > 1.571 && oldRot <= 4.712) {
-    newRot = 3.142
+    newRot = 3.142;
   }
   if (oldRot > 4.712 && oldRot <= 6.283) {
-    newRot = 6.283
+    newRot = 6.283;
   }
   if (currentCard.valObj.rotVal < 0) {
-    newRot = -newRot
+    newRot = -newRot;
   }
   gsap.to(card.valObj, {
     duration: 0.25,
     rotVal: newRot,
-  })
-  ;
+  });
 }
 
 function mouse_up(event) {
@@ -161,7 +163,8 @@ function mouse_up(event) {
   event.preventDefault();
   is_dragging = false;
   console.log("stopped dragging");
-  if (gameOn &&
+  if (
+    gameOn &&
     inRotatedRect(currentCard.valObj.xVal, currentCard.valObj.yVal, guessArea)
   ) {
     console.log("card is located inside of guess area");
@@ -534,6 +537,9 @@ function newGuess(card) {
       onComplete: () => {
         guessCard = null;
         guessInd = null;
+        title.style.opacity = 1;
+        stageNum = stageNum + 1;
+        title.innerText = "Stage " + stageNum;
         throwCards(cardAmt);
         selectGuess();
       },
@@ -607,6 +613,8 @@ function evaluator() {
 async function gameReset() {
   cardAmt = startingCardAmt;
   hearts = maxHearts;
+  stageNum = 1;
+  title.innerText = gameTitle;
   guessInd = null;
   gameOn = false;
   gsap.to(guessCard.valObj, {
@@ -624,39 +632,37 @@ async function gameReset() {
   pElement.id = mainText.id;
   mainText.replaceWith(pElement);
   mainText = pElement;
-  mainText.addEventListener(
-    "click",
-    () => {
-      if (cardArr.length === 0) {
-        console.log("Yep");
-        mainText.style.pointerEvents = 'none'
-        mainText.style.userSelect = 'none'
-        heartContainers(screenWidth / 2, 0);
-        selectGuess();
-        gsap.to(mainText, {
-          opacity: 0,
-          duration: 1,
-          onComplete: () => {
-            mainText.style.display = "none";
-            let pElement = document.createElement("p");
-            pElement.id = mainText.id;
-            mainText.replaceWith(pElement);
-            mainText = pElement;
-            mainText.style.pointerEvents = 'none'
-            mainText.style.userSelect = 'none'
-            throwCards(cardAmt);
-          }
-        });
-        gsap.to(title, {
-          opacity: 0,
-          duration: 1,
-          onComplete: () => {
-            title.style.display = "none";
-          },
-        });
-      }
+  mainText.addEventListener("click", () => {
+    if (cardArr.length === 0) {
+      console.log("Yep");
+      mainText.style.pointerEvents = "none";
+      mainText.style.userSelect = "none";
+      heartContainers(screenWidth / 2, 0);
+      selectGuess();
+      gsap.to(mainText, {
+        opacity: 0,
+        duration: 1,
+        onComplete: () => {
+          mainText.style.display = "none";
+          let pElement = document.createElement("p");
+          pElement.id = mainText.id;
+          mainText.replaceWith(pElement);
+          mainText = pElement;
+          mainText.style.pointerEvents = "none";
+          mainText.style.userSelect = "none";
+          throwCards(cardAmt);
+        },
+      });
+      gsap.to(title, {
+        opacity: 0,
+        duration: 1,
+        onComplete: () => {
+          title.style.opacity = 1;
+          title.innerText = "STAGE " + stageNum;
+        },
+      });
     }
-  );
+  });
   gsap.to(mainText, {
     opacity: 1,
     duration: 1,
@@ -679,6 +685,7 @@ async function gameReset() {
 
 // countdown logic
 async function incrementer() {
+  title.style.opacity = 0;
   countVal--;
   console.log(countVal);
   console.log("mainText.style.display: " + mainText.style.display);
@@ -705,7 +712,7 @@ async function incrementer() {
 async function memoTimer(time) {
   countDown = setInterval(incrementer, 1000);
   setTimeout(async function () {
-    gameOn = true
+    gameOn = true;
     cardArr.forEach((element) => {
       element.valObj.flippable = true;
       cardFlip(element);
