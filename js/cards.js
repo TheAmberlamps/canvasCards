@@ -44,6 +44,7 @@ let heartContImg = "assets/images/fullContainer.png";
 let canDrag = false;
 let is_dragging = false;
 let gameOver = false;
+let gameOn = false;
 let currentCard = null;
 let cardIndex = null;
 let guessCard = null;
@@ -160,7 +161,7 @@ function mouse_up(event) {
   event.preventDefault();
   is_dragging = false;
   console.log("stopped dragging");
-  if (
+  if (gameOn &&
     inRotatedRect(currentCard.valObj.xVal, currentCard.valObj.yVal, guessArea)
   ) {
     console.log("card is located inside of guess area");
@@ -520,6 +521,7 @@ function newGuess(card) {
     });
   } else {
     console.log("Round over!");
+    gameOn = false;
     if (hearts < maxHearts) {
       //hearts = hearts + 1;
       //heartArr.length = 0;
@@ -606,6 +608,7 @@ async function gameReset() {
   cardAmt = startingCardAmt;
   hearts = maxHearts;
   guessInd = null;
+  gameOn = false;
   gsap.to(guessCard.valObj, {
     xVal: screenWidth + guessCard.width,
     duration: 1,
@@ -702,6 +705,7 @@ async function incrementer() {
 async function memoTimer(time) {
   countDown = setInterval(incrementer, 1000);
   setTimeout(async function () {
+    gameOn = true
     cardArr.forEach((element) => {
       element.valObj.flippable = true;
       cardFlip(element);

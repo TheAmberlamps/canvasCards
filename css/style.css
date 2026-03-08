@@ -10,10 +10,15 @@ canvas {
 }
 
 #startButton {
+  background-image: linear-gradient(0deg,rgba(227, 217, 27, 1) 0%, rgba(156, 125, 52, 1) 51%, rgba(227, 217, 27, 1) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: #7D349CF6;
   font-family: "Rye";
   display: block;
   position: absolute;
   font-size: 5rem;
+  -webkit-text-stroke: 5px transparent;
   background-color: transparent;
   top: 50%;
   left: 50%;
@@ -23,8 +28,13 @@ canvas {
 }
 
 #titleCard {
+  background-image: linear-gradient(0deg,rgba(227, 217, 27, 1) 0%, rgba(156, 125, 52, 1) 51%, rgba(227, 217, 27, 1) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: #7D349CF6;
   position: absolute;
-  font-size: 7rem;
+  font-size: 8rem;
+  -webkit-text-stroke: 5px transparent;
   text-align: center;
   left: 50%;
   top: 15%;
