@@ -539,7 +539,7 @@ function newGuess(card) {
         guessInd = null;
         title.style.opacity = 1;
         stageNum = stageNum + 1;
-        title.innerText = "Stage " + stageNum;
+        title.innerText = "STAGE " + stageNum;
         throwCards(cardAmt);
         selectGuess();
       },
