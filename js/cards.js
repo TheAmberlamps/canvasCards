@@ -1,7 +1,7 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
-gsap.registerPlugin(CustomEase, CustomWiggle);
+gsap.registerPlugin(CustomEase, CustomWiggle, Physics2DPlugin);
 
 function resizeCanvas() {
   // Set the internal canvas rendering size to match the browser window dimensions
@@ -41,6 +41,7 @@ let countVal = countInit;
 let heartArr = [];
 let brokenHeart = [];
 let cardArr = [];
+let artCards = [];
 let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let heartContImg = "assets/images/fullContainer.png";
 let canDrag = false;
@@ -68,6 +69,7 @@ document.addEventListener("keydown", (event) => {
   console.log("event key: " + event.key);
   if (event.key === "p") {
     console.log(randRotInRads());
+    jumpingCard();
   }
 });
 
@@ -469,6 +471,51 @@ function clearScreen() {
   });
 }
 
+function jumpingCard() {
+  let mainCard = new Image();
+  mainCard.src = cardBack;
+  mainCard.valObj = {
+    xVal: screenWidth / 2,
+    yVal: screenHeight,
+    xScale: 1,
+    yScale: 1,
+    rotVal: 0,
+  };
+  //mainCard.x = mainCard.valObj.xVal;
+  //mainCard.y = mainCard.valObj.yVal;
+  const direction = () => {
+    let dir = Math.random();
+    if (dir >= 0.5) {
+      return 45;
+    } else {
+      return -45;
+    }
+  };
+  gsap.set(mainCard, {
+    x: mainCard.valObj.xVal,
+    y: mainCard.valObj.yVal,
+  });
+  gsap.to(mainCard.valObj, {
+    duration: 2,
+    rotVal: randRotInRads(),
+    onComplete: () => {
+      console.log("Printing mainCard:");
+      console.dir(mainCard);
+      console.log(mainCard.x);
+      console.log(mainCard.y);
+    },
+  });
+  gsap.to(mainCard, {
+    onUpdate: () => {
+      mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
+      mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
+    },
+    duration: 2,
+    physics2D: { velocity: 300, angle: direction(), gravity: 600 },
+  });
+  artCards.push(mainCard);
+}
+
 // game logic
 function selectGuess() {
   if (guessCard === null) {
@@ -774,6 +821,20 @@ gsap.ticker.add(() => {
         brokenHeart[i],
         -brokenHeart[i].width / 2,
         -brokenHeart[i].height / 2,
+      );
+      ctx.restore();
+    }
+  }
+  if (artCards.length > 0) {
+    for (let i = 0; i < artCards.length; i++) {
+      ctx.save();
+      ctx.translate(artCards[i].valObj.xVal, artCards[i].valObj.yVal);
+      ctx.rotate(artCards[i].valObj.rotVal);
+      ctx.scale(artCards[i].valObj.xScale, artCards[i].valObj.yScale);
+      ctx.drawImage(
+        artCards[i],
+        -artCards[i].width / 2,
+        -artCards[i].height / 2,
       );
       ctx.restore();
     }
