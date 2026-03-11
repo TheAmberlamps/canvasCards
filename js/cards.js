@@ -32,6 +32,7 @@ const gameTitle = "Canvas Cards";
 const startingCardAmt = 3;
 const maxHearts = 3;
 const countInit = 6;
+const grav = 1800;
 let decks = 1;
 let stageNum = 1;
 let newDeck = await genDeck(decks);
@@ -69,7 +70,7 @@ document.addEventListener("keydown", (event) => {
   console.log("event key: " + event.key);
   if (event.key === "p") {
     console.log(randRotInRads());
-    jumpingCard();
+    jumpingCard(5);
   }
 });
 
@@ -471,7 +472,8 @@ function clearScreen() {
   });
 }
 
-function jumpingCard() {
+function jumpingCard(t) {
+  let time = t
   let mainCard = new Image();
   mainCard.src = cardBack;
   mainCard.valObj = {
@@ -481,37 +483,38 @@ function jumpingCard() {
     yScale: 1,
     rotVal: 0,
   };
-  //mainCard.x = mainCard.valObj.xVal;
-  //mainCard.y = mainCard.valObj.yVal;
   const direction = () => {
-    let dir = Math.random();
-    if (dir >= 0.5) {
-      return 45;
+    return -Math.random() * 110 - 35;
+  }
+  const velDef = () => {
+    return Math.random() * 400 + 1100
+  }
+  const rotator = () => {
+    const rotation = Math.random() / 6.2832
+    if (Math.random() <= 0.5) {
+      return -rotation
     } else {
-      return -45;
+      return rotation
     }
-  };
+  }
+  let rotation = rotator()
   gsap.set(mainCard, {
     x: mainCard.valObj.xVal,
     y: mainCard.valObj.yVal,
   });
-  gsap.to(mainCard.valObj, {
-    duration: 2,
+  gsap.set(mainCard.valObj, {
     rotVal: randRotInRads(),
-    onComplete: () => {
-      console.log("Printing mainCard:");
-      console.dir(mainCard);
-      console.log(mainCard.x);
-      console.log(mainCard.y);
-    },
-  });
+  })
   gsap.to(mainCard, {
     onUpdate: () => {
+      // 360 degrees in radians divided by 60
+      //(6.2832 / 60)
+      mainCard.valObj.rotVal += rotation
       mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
       mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
     },
-    duration: 2,
-    physics2D: { velocity: 300, angle: direction(), gravity: 600 },
+    duration: time,
+    physics2D: { velocity: velDef(), angle: direction(), gravity: grav },
   });
   artCards.push(mainCard);
 }
