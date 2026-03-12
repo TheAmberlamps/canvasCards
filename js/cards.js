@@ -841,6 +841,8 @@ gsap.ticker.add(() => {
       );
       ctx.restore();
     }
+    artCards = artCards.filter((card) => card.valObj.yVal <= screenHeight)
+    console.log("length: " + artCards.length)
   }
   if (arrMut) {
     arrMut = false;
