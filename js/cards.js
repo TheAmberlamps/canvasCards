@@ -71,6 +71,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "p") {
     console.log(randRotInRads());
     jumpingCard(5);
+    rainCard(5)
   }
 });
 
@@ -475,12 +476,17 @@ function clearScreen() {
 function jumpingCard(t) {
   let time = t
   let mainCard = new Image();
+  const scaler = () => {
+    const scale = Math.random() * 0.5 + 0.5
+    return scale
+  }
+  let scale = scaler()
   mainCard.src = cardBack;
   mainCard.valObj = {
     xVal: screenWidth / 2,
     yVal: screenHeight,
-    xScale: 1,
-    yScale: 1,
+    xScale: scale,
+    yScale: scale,
     rotVal: 0,
   };
   const direction = () => {
@@ -508,7 +514,7 @@ function jumpingCard(t) {
   gsap.to(mainCard, {
     onUpdate: () => {
       // 360 degrees in radians divided by 60
-      //(6.2832 / 60)
+      //(6.2832 / 60)y===
       mainCard.valObj.rotVal += rotation
       mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
       mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
@@ -517,6 +523,34 @@ function jumpingCard(t) {
     physics2D: { velocity: velDef(), angle: direction(), gravity: grav },
   });
   artCards.push(mainCard);
+}
+
+function rainCard(t) {
+  let spawnPoint = Math.random() * screenWidth 
+  let time = t
+  let scale = 0.15
+  let mainCard = new Image()
+  mainCard.src = cardBack
+  mainCard.valObj = {
+    xVal: 0,
+    yVal: 0,
+    xScale: scale,
+    yScale: scale,
+    rotVal: 0,
+    opacity: 0.5
+  }
+  gsap.set(mainCard, {
+    x: spawnPoint
+  })
+  gsap.to(mainCard, {
+    onUpdate: () => {
+      mainCard.valObj.xVal = gsap.getProperty(mainCard, "x")
+      mainCard.valObj.yVal = gsap.getProperty(mainCard, "y")
+    },
+    duration: time,
+    physics2D: { velocity: 0, angle: 0, gravity: grav}
+  })
+  artCards.push(mainCard)
 }
 
 // game logic
@@ -833,6 +867,7 @@ gsap.ticker.add(() => {
       ctx.save();
       ctx.translate(artCards[i].valObj.xVal, artCards[i].valObj.yVal);
       ctx.rotate(artCards[i].valObj.rotVal);
+      ctx.globalAlpha = artCards[i].valObj.opacity;
       ctx.scale(artCards[i].valObj.xScale, artCards[i].valObj.yScale);
       ctx.drawImage(
         artCards[i],
