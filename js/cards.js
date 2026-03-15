@@ -70,8 +70,8 @@ document.addEventListener("keydown", (event) => {
   console.log("event key: " + event.key);
   if (event.key === "p") {
     console.log(randRotInRads());
-    jumpingCard(5);
-    rainCard(5)
+    jumpingCard(5, 1);
+    rainCard(5);
   }
 });
 
@@ -169,9 +169,15 @@ function mouse_up(event) {
   console.log("stopped dragging");
   if (
     gameOn &&
-    inRotatedRect(currentCard.valObj.xVal, currentCard.valObj.yVal, guessArea)
+    inRotatedRect(
+      currentCard.valObj.xVal,
+      currentCard.valObj.yVal,
+      guessArea,
+    ) &&
+    guessCard.valObj.flipping === false
   ) {
     console.log("card is located inside of guess area");
+    console.log(guessCard.valObj);
     evaluator();
   }
 }
@@ -302,10 +308,6 @@ function heartBreaker(heart) {
       yVal: screenHeight + heartL.height,
       rotVal: -(90 * Math.PI) / 180,
       ease: "power4.outin",
-      onComplete: () => {
-        console.log("Be rid of me now!");
-        brokenHeart.length = 0;
-      },
     });
     brokenHeart.push(heartL);
   };
@@ -324,10 +326,6 @@ function heartBreaker(heart) {
       yVal: screenHeight + heartR.height,
       rotVal: (90 * Math.PI) / 180,
       ease: "power4.outin",
-      onComplete: () => {
-        console.log("Be rid of me as well!");
-        brokenHeart.length = 0;
-      },
     });
     brokenHeart.push(heartR);
   };
@@ -473,84 +471,87 @@ function clearScreen() {
   });
 }
 
-function jumpingCard(t) {
-  let time = t
-  let mainCard = new Image();
+function jumpingCard(t, a) {
+  let time = t;
+  let amount = a;
   const scaler = () => {
-    const scale = Math.random() * 0.5 + 0.5
-    return scale
-  }
-  let scale = scaler()
-  mainCard.src = cardBack;
-  mainCard.valObj = {
-    xVal: screenWidth / 2,
-    yVal: screenHeight,
-    xScale: scale,
-    yScale: scale,
-    rotVal: 0,
+    const scale = Math.random() * 0.5 + 0.5;
+    return scale;
   };
   const direction = () => {
     return -Math.random() * 110 - 35;
-  }
+  };
   const velDef = () => {
-    return Math.random() * 400 + 1100
-  }
+    return Math.random() * 400 + 1100;
+  };
   const rotator = () => {
-    const rotation = Math.random() / 6.2832
+    const rotation = Math.random() / 6.2832;
     if (Math.random() <= 0.5) {
-      return -rotation
+      return -rotation;
     } else {
-      return rotation
+      return rotation;
     }
+  };
+  for (let i = 0; i < amount; i++) {
+    let mainCard = new Image();
+    let scale = scaler();
+    mainCard.src = cardBack;
+    mainCard.valObj = {
+      xVal: screenWidth / 2,
+      yVal: screenHeight,
+      xScale: scale,
+      yScale: scale,
+      rotVal: 0,
+    };
+    let rotation = rotator();
+    gsap.set(mainCard, {
+      x: mainCard.valObj.xVal,
+      y: mainCard.valObj.yVal,
+    });
+    gsap.set(mainCard.valObj, {
+      rotVal: randRotInRads(),
+    });
+    gsap.to(mainCard, {
+      onUpdate: () => {
+        // 360 degrees in radians divided by 60
+        //(6.2832 / 60)y===
+        mainCard.valObj.rotVal += rotation;
+        mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
+        mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
+      },
+      duration: time,
+      physics2D: { velocity: velDef(), angle: direction(), gravity: grav },
+    });
+    artCards.push(mainCard);
   }
-  let rotation = rotator()
-  gsap.set(mainCard, {
-    x: mainCard.valObj.xVal,
-    y: mainCard.valObj.yVal,
-  });
-  gsap.set(mainCard.valObj, {
-    rotVal: randRotInRads(),
-  })
-  gsap.to(mainCard, {
-    onUpdate: () => {
-      // 360 degrees in radians divided by 60
-      //(6.2832 / 60)y===
-      mainCard.valObj.rotVal += rotation
-      mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
-      mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
-    },
-    duration: time,
-    physics2D: { velocity: velDef(), angle: direction(), gravity: grav },
-  });
-  artCards.push(mainCard);
 }
 
 function rainCard(t) {
-  let spawnPoint = Math.random() * screenWidth 
-  let time = t
-  let scale = 0.15
-  let mainCard = new Image()
-  mainCard.src = cardBack
+  let spawnPoint = Math.random() * screenWidth;
+  let time = t;
+  let scale = 0.15;
+  let mainCard = new Image();
+  mainCard.src = cardBack;
   mainCard.valObj = {
     xVal: 0,
     yVal: 0,
     xScale: scale,
     yScale: scale,
     rotVal: 0,
-    opacity: 0.5
-  }
+    opacity: 0.5,
+  };
   gsap.set(mainCard, {
-    x: spawnPoint
-  })
+    x: spawnPoint,
+  });
   gsap.to(mainCard, {
     onUpdate: () => {
-      mainCard.valObj.xVal = gsap.getProperty(mainCard, "x")
-      mainCard.valObj.yVal = gsap.getProperty(mainCard, "y")
+      mainCard.valObj.xVal = gsap.getProperty(mainCard, "x");
+      mainCard.valObj.yVal = gsap.getProperty(mainCard, "y");
     },
     duration: time,
-    physics2D: { velocity: 0, angle: 0, gravity: grav}
-  })
-  artCards.push(mainCard)
+    physics2D: { velocity: 0, angle: 0, gravity: grav },
+  });
+  artCards.push(mainCard);
 }
 
 // game logic
@@ -615,19 +616,17 @@ function newGuess(card) {
       //heartContainers(screenWidth / 2, 0);
     }
     cardAmt = cardAmt + 1;
-    gsap.to(guessCard.valObj, {
-      xVal: screenWidth + guessCard.width,
-      duration: 1,
-      onComplete: () => {
-        guessCard = null;
-        guessInd = null;
-        title.style.opacity = 1;
-        stageNum = stageNum + 1;
-        title.innerText = "STAGE " + stageNum;
-        throwCards(cardAmt);
-        selectGuess();
-      },
-    });
+    jumpingCard(5, 50);
+    guessCard = null;
+    guessInd = null;
+    title.style.opacity = 1;
+    title.innerText = "CLEAR!";
+    setTimeout(async function () {
+      stageNum = stageNum + 1;
+      title.innerText = "STAGE " + stageNum;
+      throwCards(cardAmt);
+      selectGuess();
+    }, 3000);
   }
 }
 
@@ -861,6 +860,9 @@ gsap.ticker.add(() => {
       );
       ctx.restore();
     }
+    brokenHeart = brokenHeart.filter(
+      (card) => card.valObj.yVal <= screenHeight,
+    );
   }
   if (artCards.length > 0) {
     for (let i = 0; i < artCards.length; i++) {
@@ -876,8 +878,8 @@ gsap.ticker.add(() => {
       );
       ctx.restore();
     }
-    artCards = artCards.filter((card) => card.valObj.yVal <= screenHeight)
-    console.log("length: " + artCards.length)
+    artCards = artCards.filter((card) => card.valObj.yVal <= screenHeight);
+    console.log("length: " + artCards.length);
   }
   if (arrMut) {
     arrMut = false;
