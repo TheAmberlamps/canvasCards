@@ -5,11 +5,12 @@ body {
   background-image: url(../assets/images/Texturelabs_Fabric_184S.jpg);
 }
 
-canvas {
-  position: absolute;
+#container{
+  background: url(../assets/images/wood.jpg);
 }
 
 #startButton {
+  background: url(../assets/images/wood.jpg);
   background-image: linear-gradient(
     0deg,
     rgba(227, 217, 27, 1) 0%,
@@ -55,4 +56,8 @@ canvas {
   z-index: 2;
   pointer-events: none;
   user-select: none;
+}
+
+canvas {
+  position: absolute;
 }

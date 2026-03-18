@@ -33,6 +33,7 @@ const startingCardAmt = 3;
 const maxHearts = 3;
 const countInit = 6;
 const grav = 1800;
+let bestScore = 0;
 let decks = 1;
 let stageNum = 1;
 let newDeck = await genDeck(decks);
@@ -76,6 +77,14 @@ document.addEventListener("keydown", (event) => {
 });
 
 let title = document.getElementById("titleCard");
+let scoreCard = document.getElementById("scoreCard")
+if (document.cookie.length < 1) {
+  //scoreCard.innerText = "BEST: 0"
+} else {
+  let x = document.cookie.split('=')[1]
+  console.log(x)
+  scoreCard.innerText = "BEST: " + x
+}
 let mainText = document.getElementById("startButton");
 mainText.textContent = "START";
 mainText.addEventListener(
@@ -616,13 +625,18 @@ function newGuess(card) {
       //heartContainers(screenWidth / 2, 0);
     }
     cardAmt = cardAmt + 1;
+    if (stageNum > bestScore) {
+      bestScore = stageNum
+      scoreCard.innerText = "BEST: " + bestScore
+    }
+    cookieTime()
+    stageNum = stageNum + 1;
     jumpingCard(5, 50);
     guessCard = null;
     guessInd = null;
     title.style.opacity = 1;
     title.innerText = "CLEAR!";
     setTimeout(async function () {
-      stageNum = stageNum + 1;
       title.innerText = "STAGE " + stageNum;
       throwCards(cardAmt);
       selectGuess();
@@ -801,6 +815,14 @@ async function memoTimer(time) {
       cardFlip(element);
     });
   }, time);
+}
+
+// cookie handling
+
+function cookieTime() {
+    let genDate = new Date()
+    genDate.setFullYear(genDate.getFullYear() + 1)
+    document.cookie = `score=${bestScore}; expires=${genDate}; path=/`;
 }
 
 // update loop
