@@ -34,6 +34,9 @@ const maxHearts = 3;
 const countInit = 6;
 const grav = 1800;
 let bestScore = 0;
+if (document.cookie.length > 0) {
+  bestScore = document.cookie.split("=")[1];
+}
 let decks = 1;
 let stageNum = 1;
 let newDeck = await genDeck(decks);
@@ -77,13 +80,13 @@ document.addEventListener("keydown", (event) => {
 });
 
 let title = document.getElementById("titleCard");
-let scoreCard = document.getElementById("scoreCard")
+let scoreCard = document.getElementById("scoreCard");
 if (document.cookie.length < 1) {
-  //scoreCard.innerText = "BEST: 0"
+  scoreCard.innerText = "BEST: 0";
 } else {
-  let x = document.cookie.split('=')[1]
-  console.log(x)
-  scoreCard.innerText = "BEST: " + x
+  let x = document.cookie.split("=")[1];
+  console.log(x);
+  scoreCard.innerText = "BEST: " + x;
 }
 let mainText = document.getElementById("startButton");
 mainText.textContent = "START";
@@ -626,10 +629,10 @@ function newGuess(card) {
     }
     cardAmt = cardAmt + 1;
     if (stageNum > bestScore) {
-      bestScore = stageNum
-      scoreCard.innerText = "BEST: " + bestScore
+      bestScore = stageNum;
+      scoreCard.innerText = "BEST: " + bestScore;
     }
-    cookieTime()
+    cookieTime();
     stageNum = stageNum + 1;
     jumpingCard(5, 50);
     guessCard = null;
@@ -820,9 +823,9 @@ async function memoTimer(time) {
 // cookie handling
 
 function cookieTime() {
-    let genDate = new Date()
-    genDate.setFullYear(genDate.getFullYear() + 1)
-    document.cookie = `score=${bestScore}; expires=${genDate}; path=/`;
+  let genDate = new Date();
+  genDate.setFullYear(genDate.getFullYear() + 1);
+  document.cookie = `score=${bestScore}; expires=${genDate}; path=/`;
 }
 
 // update loop
@@ -901,7 +904,6 @@ gsap.ticker.add(() => {
       ctx.restore();
     }
     artCards = artCards.filter((card) => card.valObj.yVal <= screenHeight);
-    console.log("length: " + artCards.length);
   }
   if (arrMut) {
     arrMut = false;

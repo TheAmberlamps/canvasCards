@@ -5,8 +5,27 @@ body {
   background-image: url(../assets/images/Texturelabs_Fabric_184S.jpg);
 }
 
-#container{
+#container {
   background: url(../assets/images/wood.jpg);
+}
+
+#scoreCard {
+  background-image: linear-gradient(
+    0deg,
+    rgba(227, 217, 27, 1) 0%,
+    rgba(156, 125, 52, 1) 51%,
+    rgba(227, 217, 27, 1) 100%
+  );
+  color: #7d349cf6;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 3px transparent;
+  background-color: transparent;
+  position: absolute;
+  display: block;
+  top: -1rem;
+  left: 2rem;
+  font-size: 3rem;
 }
 
 #startButton {
