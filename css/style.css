@@ -10,7 +10,6 @@ body {
 }
 
 #startButton {
-  background: url(../assets/images/wood.jpg);
   background-image: linear-gradient(
     0deg,
     rgba(227, 217, 27, 1) 0%,
