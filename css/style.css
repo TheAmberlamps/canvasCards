@@ -9,6 +9,13 @@ body {
   background: url(../assets/images/wood.jpg);
 }
 
+#tutPic {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
 #scoreCard {
   background-image: linear-gradient(
     0deg,
@@ -44,6 +51,29 @@ body {
   position: absolute;
   font-size: 5rem;
   top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-family: "Rye";
+}
+
+#tut {
+  background-image: linear-gradient(
+    0deg,
+    rgba(227, 217, 27, 1) 0%,
+    rgba(156, 125, 52, 1) 51%,
+    rgba(227, 217, 27, 1) 100%
+  );
+  color: #7d349cf6;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 5px transparent;
+  background-color: transparent;
+  display: block;
+  position: absolute;
+  font-size: 5rem;
+  top: 70%;
   left: 50%;
   margin: 0;
   transform: translate(-50%, -50%);

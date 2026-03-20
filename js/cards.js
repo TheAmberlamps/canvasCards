@@ -81,6 +81,28 @@ document.addEventListener("keydown", (event) => {
 
 let title = document.getElementById("titleCard");
 let scoreCard = document.getElementById("scoreCard");
+let tutButt = document.getElementById("tut")
+tutButt.addEventListener(
+  "click",
+  () => {
+    tutButt.style.pointerEvents = "none";
+    tutButt.style.userSelect = "none";
+    mainText.style.pointerEvents = "none";
+    mainText.style.userSelect = "none";
+    gsap.to(tutButt, {
+      opacity: 0,
+      duration: 1
+    })
+    gsap.to(mainText, {
+      opacity: 0,
+      duration: 1
+    })
+    gsap.to(title, {
+      opacity: 0,
+      duration: 1
+    })
+  }
+)
 if (document.cookie.length < 1) {
   scoreCard.innerText = "BEST: 0";
 } else {
@@ -96,6 +118,8 @@ mainText.addEventListener(
     console.log("Yep");
     mainText.style.pointerEvents = "none";
     mainText.style.userSelect = "none";
+    tutButt.style.pointerEvents = "none";
+    tutButt.style.userSelect = "none";
     heartContainers(screenWidth / 2, 0);
     selectGuess();
     guessAreaInit();
@@ -122,6 +146,10 @@ mainText.addEventListener(
         title.innerText = "STAGE " + stageNum;
       },
     });
+    gsap.to(tutButt, {
+      opacity: 0,
+      duration: 1,
+    })
   },
   { once: true },
 );
@@ -623,7 +651,14 @@ function newGuess(card) {
     console.log("Round over!");
     gameOn = false;
     if (hearts < maxHearts) {
-      //hearts = hearts + 1;
+      hearts = hearts + 1;
+      for (let i = heartArr.length - 1; i > -1; i--) {
+        if (heartArr[i].valObj.full === false) {
+          heartArr[i].valObj.full = true
+          heartArr[i].src = "assets/images/fullContainer.png"
+          break
+        }
+      }
       //heartArr.length = 0;
       //heartContainers(screenWidth / 2, 0);
     }
