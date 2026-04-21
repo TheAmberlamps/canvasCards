@@ -82,6 +82,7 @@ document.addEventListener("keydown", (event) => {
 let title = document.getElementById("titleCard");
 let scoreCard = document.getElementById("scoreCard");
 let tutButt = document.getElementById("tut")
+let tutPicDiv = document.getElementById("tutPic")
 tutButt.addEventListener(
   "click",
   () => {
