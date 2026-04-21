@@ -56,8 +56,8 @@ let gameOn = false;
 let currentCard = null;
 let cardIndex = null;
 let guessCard = null;
+let guessArea = null;
 let arrMut = false;
-let guessArea;
 let countDown;
 let guessInd;
 let startX;
@@ -81,29 +81,29 @@ document.addEventListener("keydown", (event) => {
 
 let title = document.getElementById("titleCard");
 let scoreCard = document.getElementById("scoreCard");
-let tutButt = document.getElementById("tut")
-let tutPicDiv = document.getElementById("tutPic")
-tutButt.addEventListener(
-  "click",
-  () => {
-    tutButt.style.pointerEvents = "none";
-    tutButt.style.userSelect = "none";
-    mainText.style.pointerEvents = "none";
-    mainText.style.userSelect = "none";
-    gsap.to(tutButt, {
-      opacity: 0,
-      duration: 1
-    })
-    gsap.to(mainText, {
-      opacity: 0,
-      duration: 1
-    })
-    gsap.to(title, {
-      opacity: 0,
-      duration: 1
-    })
-  }
-)
+let tutButt = document.getElementById("tut");
+let tutPicDiv = document.getElementById("tutPic");
+tutButt.addEventListener("click", () => {
+  tutButt.style.pointerEvents = "none";
+  tutButt.style.userSelect = "none";
+  mainText.style.pointerEvents = "none";
+  mainText.style.userSelect = "none";
+  heartContainers(screenWidth / 2, 0);
+  selectGuess();
+  guessAreaInit();
+  gsap.to(tutButt, {
+    opacity: 0,
+    duration: 1,
+  });
+  gsap.to(mainText, {
+    opacity: 0,
+    duration: 1,
+  });
+  gsap.to(title, {
+    opacity: 0,
+    duration: 1,
+  });
+});
 if (document.cookie.length < 1) {
   scoreCard.innerText = "BEST: 0";
 } else {
@@ -150,7 +150,7 @@ mainText.addEventListener(
     gsap.to(tutButt, {
       opacity: 0,
       duration: 1,
-    })
+    });
   },
   { once: true },
 );
@@ -655,9 +655,9 @@ function newGuess(card) {
       hearts = hearts + 1;
       for (let i = heartArr.length - 1; i > -1; i--) {
         if (heartArr[i].valObj.full === false) {
-          heartArr[i].valObj.full = true
-          heartArr[i].src = "assets/images/fullContainer.png"
-          break
+          heartArr[i].valObj.full = true;
+          heartArr[i].src = "assets/images/fullContainer.png";
+          break;
         }
       }
       //heartArr.length = 0;
@@ -693,22 +693,31 @@ function checkGuess(guess, currCard) {
 }
 
 function guessAreaInit() {
-  guessArea = new Image();
-  guessArea.valObj = {
-    xVal: screenWidth,
-    yVal: screenHeight,
-    rotVal: 0,
-    opacity: 0,
-  };
-  guessArea.addEventListener("load", () => {
-    ((guessArea.valObj.xVal = screenWidth - guessArea.width),
-      (guessArea.valObj.yVal = screenHeight - guessArea.height / 1.5),
-      gsap.to(guessArea.valObj, {
-        duration: 1,
-        opacity: 0.5,
-      }));
-  });
-  guessArea.src = cardBack;
+  if (guessArea === null) {
+    console.log("We null");
+    guessArea = new Image();
+    guessArea.valObj = {
+      xVal: screenWidth,
+      yVal: screenHeight,
+      rotVal: 0,
+      opacity: 0,
+    };
+    guessArea.addEventListener("load", () => {
+      ((guessArea.valObj.xVal = screenWidth - guessArea.width),
+        (guessArea.valObj.yVal = screenHeight - guessArea.height / 1.5),
+        gsap.to(guessArea.valObj, {
+          duration: 1,
+          opacity: 0.5,
+        }));
+    });
+    guessArea.src = cardBack;
+  } else {
+    console.log("We not null");
+    gsap.to(guessArea.valObj, {
+      duration: 1,
+      opacity: 0.5,
+    });
+  }
 }
 
 function evaluator() {
@@ -760,6 +769,18 @@ async function gameReset() {
       guessCard = null;
     },
   });
+  gsap.to(guessArea.valObj, {
+    duration: 1,
+    opacity: 0,
+  });
+  gsap.to(tutButt, {
+    duration: 1,
+    opacity: 1,
+    onComplete: () => {
+      tutButt.style.pointerEvents = "auto";
+      tutButt.style.userSelect = "auto";
+    },
+  });
   newDeck = await genDeck(decks);
   mainText.textContent = "START";
   mainText.style.display = "inline-block";
@@ -773,8 +794,11 @@ async function gameReset() {
       console.log("Yep");
       mainText.style.pointerEvents = "none";
       mainText.style.userSelect = "none";
+      tutButt.style.pointerEvents = "none";
+      tutButt.style.userSelect = "none";
       heartContainers(screenWidth / 2, 0);
       selectGuess();
+      guessAreaInit();
       gsap.to(mainText, {
         opacity: 0,
         duration: 1,
@@ -796,6 +820,10 @@ async function gameReset() {
           title.style.opacity = 1;
           title.innerText = "STAGE " + stageNum;
         },
+      });
+      gsap.to(tutButt, {
+        duration: 1,
+        opacity: 0,
       });
     }
   });

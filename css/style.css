@@ -12,8 +12,9 @@ body {
 #tutPic {
   display: none;
   position: absolute;
-  top: 50%;
-  left: 50%;
+  scale: 75%;
+  top: -15%;
+  left: -10%;
 }
 
 #scoreCard {
