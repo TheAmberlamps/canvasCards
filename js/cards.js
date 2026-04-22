@@ -51,7 +51,7 @@ let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let heartContImg = "assets/images/fullContainer.png";
 let canDrag = false;
 let is_dragging = false;
-let inTut = false
+let inTut = false;
 let gameOn = false;
 let currentCard = null;
 let cardIndex = null;
@@ -79,24 +79,57 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-function tutButtonStuff() {
-  (tutButt.addEventListener("click", () => {
-  inTut = true
-  mainFadeOut()
-  heartContainers(screenWidth / 2, 0);
-  selectGuess();
-  guessAreaInit();
-  throwCards(1)
-  // disabled for the moment
-  //canDrag = true
-  }, {once: true}));
+function tutButtonStuff(ts) {
+  let tutState = ts;
+  tutButt.addEventListener(
+    "click",
+    () => {
+      if (tutState === 1) {
+        inTut = true;
+        canDrag = true;
+        mainFadeOut();
+        heartContainers(screenWidth / 2, 0);
+        selectGuess();
+        guessAreaInit();
+        throwCards(1);
+      }
+      if (tutState === 2) {
+        gsap.to(title, {
+          opacity: 0,
+          duration: 1,
+          onComplete: () => {
+            title.innerText = "DRAG THE INDICATED CARD HERE";
+            gsap.to(title, {
+              opacity: 1,
+              duration: 1,
+              onComplete: () => {
+                tutButtonStuff(3);
+              },
+            });
+          },
+        });
+        cardArr[0].valObj.flippable = true;
+        guessCard.valObj.flippable = true;
+        cardFlip(cardArr[0]);
+        cardFlip(guessCard);
+      }
+      if (tutState === 3) {
+        console.log("OK, time to decide how to move to the next stage");
+        console.log("implement a timer to make outline flash");
+        console.log(
+          "alternatively use a resursive gsap to drag card to the guess area and then snap it back",
+        );
+      }
+    },
+    { once: true },
+  );
 }
 
 let title = document.getElementById("titleCard");
 let scoreCard = document.getElementById("scoreCard");
 let tutButt = document.getElementById("tut");
 let tutPicDiv = document.getElementById("tutPic");
-tutButtonStuff()
+tutButtonStuff(1);
 if (document.cookie.length < 1) {
   scoreCard.innerText = "BEST: 0";
 } else {
@@ -110,7 +143,7 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
-    mainFadeOut()
+    mainFadeOut();
     heartContainers(screenWidth / 2, 0);
     selectGuess();
     guessAreaInit();
@@ -269,7 +302,7 @@ function mainFadeOut() {
   tutButt.style.userSelect = "none";
   gsap.to(title, {
     opacity: 0,
-    duration: 1
+    duration: 1,
   });
   gsap.to(tutButt, {
     opacity: 0,
@@ -281,9 +314,7 @@ function mainFadeOut() {
   });
 }
 
-function mainFadeIn() {
-
-}
+function mainFadeIn() {}
 
 function randOffset(offset) {
   if (Math.random() > 0.5) {
@@ -482,29 +513,28 @@ async function throwCards(amt) {
   }
   if (inTut) {
     setTimeout(async function () {
-      console.log("textPop")
-      tutButt.innerText = "NEXT"
-      title.innerText = "MEMORIZE"
+      console.log("textPop");
+      tutButt.innerText = "NEXT";
+      title.innerText = "MEMORIZE";
       gsap.to(tutButt, {
         duration: 1,
         opacity: 1,
         onComplete: () => {
           tutButt.style.pointerEvents = "auto";
           tutButt.style.userSelect = "auto";
-          
-        }
-      })
+          tutButtonStuff(2);
+        },
+      });
       gsap.to(title, {
         duration: 1,
-        opacity: 1
-      })
-    }, 1000)
-  }
-  else {
+        opacity: 1,
+      });
+    }, 1000);
+  } else {
     setTimeout(async function () {
-    memoTimer(countInit * 1000);
-    }, amt * 500)
-  };
+      memoTimer(countInit * 1000);
+    }, amt * 500);
+  }
 }
 
 async function cardOut(card) {
@@ -926,8 +956,16 @@ gsap.ticker.add(() => {
   if (guessArea) {
     ctx.save();
     ctx.translate(guessArea.valObj.xVal, guessArea.valObj.yVal);
-    ctx.globalAlpha = guessArea.valObj.opacity;
     ctx.scale(guessArea.valObj.xScale, 1);
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 5;
+    ctx.strokeRect(
+      -guessArea.width / 2,
+      -guessArea.height / 2,
+      guessArea.width,
+      guessArea.height,
+    );
+    ctx.globalAlpha = guessArea.valObj.opacity;
     ctx.drawImage(guessArea, -guessArea.width / 2, -guessArea.height / 2);
     ctx.restore();
   }
