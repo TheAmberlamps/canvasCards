@@ -79,34 +79,24 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-let title = document.getElementById("titleCard");
-let scoreCard = document.getElementById("scoreCard");
-let tutButt = document.getElementById("tut");
-let tutPicDiv = document.getElementById("tutPic");
-tutButt.addEventListener("click", () => {
+function tutButtonStuff() {
+  (tutButt.addEventListener("click", () => {
   inTut = true
-  tutButt.style.pointerEvents = "none";
-  tutButt.style.userSelect = "none";
-  mainText.style.pointerEvents = "none";
-  mainText.style.userSelect = "none";
+  mainFadeOut()
   heartContainers(screenWidth / 2, 0);
   selectGuess();
   guessAreaInit();
   throwCards(1)
-  canDrag = true
-  gsap.to(tutButt, {
-    opacity: 0,
-    duration: 1,
-  });
-  gsap.to(mainText, {
-    opacity: 0,
-    duration: 1,
-  });
-  gsap.to(title, {
-    opacity: 0,
-    duration: 1,
-  });
-});
+  // disabled for the moment
+  //canDrag = true
+  }, {once: true}));
+}
+
+let title = document.getElementById("titleCard");
+let scoreCard = document.getElementById("scoreCard");
+let tutButt = document.getElementById("tut");
+let tutPicDiv = document.getElementById("tutPic");
+tutButtonStuff()
 if (document.cookie.length < 1) {
   scoreCard.innerText = "BEST: 0";
 } else {
@@ -120,10 +110,7 @@ mainText.addEventListener(
   "click",
   () => {
     console.log("Yep");
-    mainText.style.pointerEvents = "none";
-    mainText.style.userSelect = "none";
-    tutButt.style.pointerEvents = "none";
-    tutButt.style.userSelect = "none";
+    mainFadeOut()
     heartContainers(screenWidth / 2, 0);
     selectGuess();
     guessAreaInit();
@@ -140,19 +127,9 @@ mainText.addEventListener(
         mainText.style.userSelect = "none";
         canDrag = true;
         throwCards(cardAmt);
-      },
-    });
-    gsap.to(title, {
-      opacity: 0,
-      duration: 1,
-      onComplete: () => {
         title.style.opacity = 1;
         title.innerText = "STAGE " + stageNum;
       },
-    });
-    gsap.to(tutButt, {
-      opacity: 0,
-      duration: 1,
     });
   },
   { once: true },
@@ -283,6 +260,29 @@ function randRotInRads() {
   } else {
     return -(Math.floor(Math.random() * 360) * Math.PI) / 180;
   }
+}
+
+function mainFadeOut() {
+  mainText.style.pointerEvents = "none";
+  mainText.style.userSelect = "none";
+  tutButt.style.pointerEvents = "none";
+  tutButt.style.userSelect = "none";
+  gsap.to(title, {
+    opacity: 0,
+    duration: 1
+  });
+  gsap.to(tutButt, {
+    opacity: 0,
+    duration: 1,
+  });
+  gsap.to(mainText, {
+    opacity: 0,
+    duration: 1,
+  });
+}
+
+function mainFadeIn() {
+
 }
 
 function randOffset(offset) {
@@ -483,6 +483,21 @@ async function throwCards(amt) {
   if (inTut) {
     setTimeout(async function () {
       console.log("textPop")
+      tutButt.innerText = "NEXT"
+      title.innerText = "MEMORIZE"
+      gsap.to(tutButt, {
+        duration: 1,
+        opacity: 1,
+        onComplete: () => {
+          tutButt.style.pointerEvents = "auto";
+          tutButt.style.userSelect = "auto";
+          
+        }
+      })
+      gsap.to(title, {
+        duration: 1,
+        opacity: 1
+      })
     }, 1000)
   }
   else {
