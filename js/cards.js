@@ -51,7 +51,7 @@ let cardBack = "https://deckofcardsapi.com/static/img/back.png";
 let heartContImg = "assets/images/fullContainer.png";
 let canDrag = false;
 let is_dragging = false;
-//let gameOver = false;
+let inTut = false
 let gameOn = false;
 let currentCard = null;
 let cardIndex = null;
@@ -84,6 +84,7 @@ let scoreCard = document.getElementById("scoreCard");
 let tutButt = document.getElementById("tut");
 let tutPicDiv = document.getElementById("tutPic");
 tutButt.addEventListener("click", () => {
+  inTut = true
   tutButt.style.pointerEvents = "none";
   tutButt.style.userSelect = "none";
   mainText.style.pointerEvents = "none";
@@ -91,6 +92,8 @@ tutButt.addEventListener("click", () => {
   heartContainers(screenWidth / 2, 0);
   selectGuess();
   guessAreaInit();
+  throwCards(1)
+  canDrag = true
   gsap.to(tutButt, {
     opacity: 0,
     duration: 1,
@@ -477,9 +480,16 @@ async function throwCards(amt) {
       await cardMaker(newDeck, 0, canvas.height);
     }, time);
   }
-  setTimeout(async function () {
+  if (inTut) {
+    setTimeout(async function () {
+      console.log("textPop")
+    }, 1000)
+  }
+  else {
+    setTimeout(async function () {
     memoTimer(countInit * 1000);
-  }, amt * 500);
+    }, amt * 500)
+  };
 }
 
 async function cardOut(card) {
