@@ -79,6 +79,27 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+function tutAnim() {
+  if (cardArr.length > 0) {
+    cardArr[0].valObj.savedX = cardArr[0].valObj.xVal
+    cardArr[0].valObj.savedY = cardArr[0].valObj.yVal
+    gsap.to(cardArr[0].valObj, {
+      duration: 2,
+      ease: "power2.inOut",
+      xVal: guessArea.valObj.xVal,
+      yVal: guessArea.valObj.yVal,
+      onComplete: () => {
+        cardArr[0].valObj.xVal = cardArr[0].valObj.savedX
+        cardArr[0].valObj.yVal = cardArr[0].valObj.savedY
+        tutAnim()
+      }
+    })
+  }
+  else {
+    return
+  }
+}
+
 function tutButtonStuff(ts) {
   let tutState = ts;
   tutButt.addEventListener(
@@ -86,7 +107,7 @@ function tutButtonStuff(ts) {
     () => {
       if (tutState === 1) {
         inTut = true;
-        canDrag = true;
+        //canDrag = true;
         mainFadeOut();
         heartContainers(screenWidth / 2, 0);
         selectGuess();
@@ -98,7 +119,8 @@ function tutButtonStuff(ts) {
           opacity: 0,
           duration: 1,
           onComplete: () => {
-            title.innerText = "DRAG THE INDICATED CARD HERE";
+            title.innerText = "DRAG GUESS HERE";
+            tutAnim()
             gsap.to(title, {
               opacity: 1,
               duration: 1,

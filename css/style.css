@@ -89,6 +89,7 @@ body {
     rgba(156, 125, 52, 1) 51%,
     rgba(227, 217, 27, 1) 100%
   );
+  background-size: cover;
   color: #7d349cf6;
   background-clip: text;
   -webkit-background-clip: text;
@@ -100,8 +101,8 @@ body {
   font-weight: normal;
   text-align: center;
   left: 50%;
-  top: 15%;
-  transform: translate(-50%, -50%);
+  top: 0%;
+  transform: translate(-50%);
   z-index: 2;
   pointer-events: none;
   user-select: none;
