@@ -149,9 +149,9 @@ function tutButtonStuff(ts) {
 
 let title = document.getElementById("titleCard");
 let scoreCard = document.getElementById("scoreCard");
-let tutButt = document.getElementById("tut");
+//let tutButt = document.getElementById("tut");
 let tutPicDiv = document.getElementById("tutPic");
-tutButtonStuff(1);
+//tutButtonStuff(1);
 if (document.cookie.length < 1) {
   scoreCard.innerText = "BEST: 0";
 } else {
@@ -320,16 +320,16 @@ function randRotInRads() {
 function mainFadeOut() {
   mainText.style.pointerEvents = "none";
   mainText.style.userSelect = "none";
-  tutButt.style.pointerEvents = "none";
-  tutButt.style.userSelect = "none";
+  //tutButt.style.pointerEvents = "none";
+  //tutButt.style.userSelect = "none";
   gsap.to(title, {
     opacity: 0,
     duration: 1,
   });
-  gsap.to(tutButt, {
-    opacity: 0,
-    duration: 1,
-  });
+  //gsap.to(tutButt, {
+    //opacity: 0,
+    //duration: 1,
+  //});
   gsap.to(mainText, {
     opacity: 0,
     duration: 1,
@@ -979,14 +979,14 @@ gsap.ticker.add(() => {
     ctx.save();
     ctx.translate(guessArea.valObj.xVal, guessArea.valObj.yVal);
     ctx.scale(guessArea.valObj.xScale, 1);
-    ctx.strokeStyle = "red";
+    /*ctx.strokeStyle = "red";
     ctx.lineWidth = 5;
     ctx.strokeRect(
       -guessArea.width / 2,
       -guessArea.height / 2,
       guessArea.width,
       guessArea.height,
-    );
+    );*/
     ctx.globalAlpha = guessArea.valObj.opacity;
     ctx.drawImage(guessArea, -guessArea.width / 2, -guessArea.height / 2);
     ctx.restore();
