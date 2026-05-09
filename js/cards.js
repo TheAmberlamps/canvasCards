@@ -538,7 +538,7 @@ async function throwCards(amt) {
       console.log("textPop");
       tutButt.innerText = "NEXT";
       title.innerText = "MEMORIZE";
-      gsap.to(tutButt, {
+      /*gsap.to(tutButt, {
         duration: 1,
         opacity: 1,
         onComplete: () => {
@@ -546,7 +546,7 @@ async function throwCards(amt) {
           tutButt.style.userSelect = "auto";
           tutButtonStuff(2);
         },
-      });
+      });*/
       gsap.to(title, {
         duration: 1,
         opacity: 1,
@@ -850,14 +850,14 @@ async function gameReset() {
     duration: 1,
     opacity: 0,
   });
-  gsap.to(tutButt, {
+  /*gsap.to(tutButt, {
     duration: 1,
     opacity: 1,
     onComplete: () => {
       tutButt.style.pointerEvents = "auto";
       tutButt.style.userSelect = "auto";
     },
-  });
+  });*/
   newDeck = await genDeck(decks);
   mainText.textContent = "START";
   mainText.style.display = "inline-block";
@@ -871,8 +871,8 @@ async function gameReset() {
       console.log("Yep");
       mainText.style.pointerEvents = "none";
       mainText.style.userSelect = "none";
-      tutButt.style.pointerEvents = "none";
-      tutButt.style.userSelect = "none";
+      //tutButt.style.pointerEvents = "none";
+      //tutButt.style.userSelect = "none";
       heartContainers(screenWidth / 2, 0);
       selectGuess();
       guessAreaInit();
@@ -898,10 +898,10 @@ async function gameReset() {
           title.innerText = "STAGE " + stageNum;
         },
       });
-      gsap.to(tutButt, {
+      /*gsap.to(tutButt, {
         duration: 1,
         opacity: 0,
-      });
+      });*/
     }
   });
   gsap.to(mainText, {
