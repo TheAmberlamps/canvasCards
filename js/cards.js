@@ -81,22 +81,21 @@ document.addEventListener("keydown", (event) => {
 
 function tutAnim() {
   if (cardArr.length > 0) {
-    cardArr[0].valObj.savedX = cardArr[0].valObj.xVal
-    cardArr[0].valObj.savedY = cardArr[0].valObj.yVal
+    cardArr[0].valObj.savedX = cardArr[0].valObj.xVal;
+    cardArr[0].valObj.savedY = cardArr[0].valObj.yVal;
     gsap.to(cardArr[0].valObj, {
       duration: 2,
       ease: "power2.inOut",
       xVal: guessArea.valObj.xVal,
       yVal: guessArea.valObj.yVal,
       onComplete: () => {
-        cardArr[0].valObj.xVal = cardArr[0].valObj.savedX
-        cardArr[0].valObj.yVal = cardArr[0].valObj.savedY
-        tutAnim()
-      }
-    })
-  }
-  else {
-    return
+        cardArr[0].valObj.xVal = cardArr[0].valObj.savedX;
+        cardArr[0].valObj.yVal = cardArr[0].valObj.savedY;
+        tutAnim();
+      },
+    });
+  } else {
+    return;
   }
 }
 
@@ -120,7 +119,7 @@ function tutButtonStuff(ts) {
           duration: 1,
           onComplete: () => {
             title.innerText = "DRAG GUESS HERE";
-            tutAnim()
+            tutAnim();
             gsap.to(title, {
               opacity: 1,
               duration: 1,
@@ -327,8 +326,8 @@ function mainFadeOut() {
     duration: 1,
   });
   //gsap.to(tutButt, {
-    //opacity: 0,
-    //duration: 1,
+  //opacity: 0,
+  //duration: 1,
   //});
   gsap.to(mainText, {
     opacity: 0,
@@ -754,8 +753,33 @@ function newGuess(card) {
     title.innerText = "CLEAR!";
     setTimeout(async function () {
       title.innerText = "STAGE " + stageNum;
-      throwCards(cardAmt);
-      selectGuess();
+      mainText.textContent = "START";
+      mainText.style.display = "inline-block";
+      let bElement = document.createElement("button");
+      bElement.textContent = "START";
+      bElement.id = mainText.id;
+      mainText.replaceWith(bElement);
+      mainText = bElement;
+      mainText.addEventListener(
+        "click",
+        () => {
+          gsap.to(mainText, {
+            opacity: 0,
+            duration: 1,
+            onComplete: () => {
+              let pElement = document.createElement("p");
+              pElement.id = mainText.id;
+              mainText.replaceWith(pElement);
+              mainText = pElement;
+              mainText.style.pointerEvents = "none";
+              mainText.style.userSelect = "none";
+            },
+          });
+          throwCards(cardAmt);
+          selectGuess();
+        },
+        { once: true },
+      );
     }, 3000);
   }
 }
@@ -861,11 +885,11 @@ async function gameReset() {
   newDeck = await genDeck(decks);
   mainText.textContent = "START";
   mainText.style.display = "inline-block";
-  let pElement = document.createElement("button");
-  pElement.textContent = "START";
-  pElement.id = mainText.id;
-  mainText.replaceWith(pElement);
-  mainText = pElement;
+  let bElement = document.createElement("button");
+  bElement.textContent = "START";
+  bElement.id = mainText.id;
+  mainText.replaceWith(bElement);
+  mainText = bElement;
   mainText.addEventListener("click", () => {
     if (cardArr.length === 0) {
       console.log("Yep");
