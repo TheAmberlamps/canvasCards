@@ -24,6 +24,8 @@ const wrongSound = new Audio("assets/sounds/572936__bloodpixelhero__error.wav");
 wrongSound.playbackRate = 2;
 const correctSound = new Audio("assets/sounds/soft-dreamy-beep.ogg");
 correctSound.playbackRate = 2;
+const mausClk = new Audio("assets/sounds/mClk.wav")
+mausClk.playbackRate = 1;
 
 // global variables
 const screenWidth = canvas.width;
@@ -62,6 +64,7 @@ let countDown;
 let guessInd;
 let startX;
 let startY;
+let deckNumRem;
 
 canvas.onmousedown = mouse_down;
 canvas.onmouseup = mouse_up;
@@ -70,12 +73,14 @@ canvas.onmouseout = mouse_out;
 
 // keyboard debugging thing
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", async (event) => {
   console.log("event key: " + event.key);
   if (event.key === "p") {
     console.log(randRotInRads());
     jumpingCard(5, 1);
     rainCard(5);
+    deckNumRem = await deckCheck(newDeck)
+    console.log(deckNumRem)
   }
 });
 
@@ -558,6 +563,19 @@ async function throwCards(amt) {
   }
 }
 
+async function deckCheck(deck) {
+  let deckUrl = `https://deckofcardsapi.com/api/deck/${deck}`
+  try {
+    let response = await fetch(deckUrl)
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    let data = await response.json();
+    return data.remaining
+  } catch (error) {
+    console.log("Fetch failed: ", error)
+    return null
+  }
+}
+
 async function cardOut(card) {
   card.valObj.flippable = true;
   cardFlip(card);
@@ -705,11 +723,12 @@ function selectGuess() {
     guessCard.src = cardBack;
   } else {
     guessCard.valObj.flippable = true;
+    console.log('Ayy this is it')
     cardFlip(guessCard);
   }
 }
 
-function newGuess(card) {
+async function newGuess(card) {
   if (guessInd) {
     console.log("splicing array");
     cardArr.splice(guessInd, 1);
@@ -751,6 +770,19 @@ function newGuess(card) {
     guessInd = null;
     title.style.opacity = 1;
     title.innerText = "CLEAR!";
+    let checkVal = await deckCheck(newDeck)
+    console.log(checkVal)
+    if (checkVal < 1) {
+      console.log("This is the place for a victory!")
+      gsap.to(title, {
+        duration: 1,
+        opacity: 0,
+        onComplete: () => {
+          title.innerText = "VICTORY"
+          title.style.opacity = 1
+        }
+      })
+    } else {
     setTimeout(async function () {
       title.innerText = "STAGE " + stageNum;
       mainText.textContent = "START";
@@ -780,7 +812,7 @@ function newGuess(card) {
         },
         { once: true },
       );
-    }, 3000);
+    }, 3000)}
   }
 }
 
