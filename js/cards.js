@@ -24,7 +24,7 @@ const wrongSound = new Audio("assets/sounds/572936__bloodpixelhero__error.wav");
 wrongSound.playbackRate = 2;
 const correctSound = new Audio("assets/sounds/soft-dreamy-beep.ogg");
 correctSound.playbackRate = 2;
-const mausClk = new Audio("assets/sounds/mClk.wav")
+const mausClk = new Audio("assets/sounds/mClk.wav");
 mausClk.playbackRate = 1;
 
 // global variables
@@ -79,8 +79,8 @@ document.addEventListener("keydown", async (event) => {
     console.log(randRotInRads());
     jumpingCard(5, 1);
     rainCard(5);
-    deckNumRem = await deckCheck(newDeck)
-    console.log(deckNumRem)
+    deckNumRem = await deckCheck(newDeck);
+    console.log(deckNumRem);
   }
 });
 
@@ -564,15 +564,15 @@ async function throwCards(amt) {
 }
 
 async function deckCheck(deck) {
-  let deckUrl = `https://deckofcardsapi.com/api/deck/${deck}`
+  let deckUrl = `https://deckofcardsapi.com/api/deck/${deck}`;
   try {
-    let response = await fetch(deckUrl)
+    let response = await fetch(deckUrl);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     let data = await response.json();
-    return data.remaining
+    return data.remaining;
   } catch (error) {
-    console.log("Fetch failed: ", error)
-    return null
+    console.log("Fetch failed: ", error);
+    return null;
   }
 }
 
@@ -723,7 +723,7 @@ function selectGuess() {
     guessCard.src = cardBack;
   } else {
     guessCard.valObj.flippable = true;
-    console.log('Ayy this is it')
+    console.log("Ayy this is it");
     cardFlip(guessCard);
   }
 }
@@ -770,49 +770,52 @@ async function newGuess(card) {
     guessInd = null;
     title.style.opacity = 1;
     title.innerText = "CLEAR!";
-    let checkVal = await deckCheck(newDeck)
-    console.log(checkVal)
+    let checkVal = await deckCheck(newDeck);
+    console.log(checkVal);
     if (checkVal < 1) {
-      console.log("This is the place for a victory!")
-      gsap.to(title, {
-        duration: 1,
-        opacity: 0,
-        onComplete: () => {
-          title.innerText = "VICTORY"
-          title.style.opacity = 1
-        }
-      })
+      console.log("This is the place for a victory!");
+      setTimeout(async function () {
+        gsap.to(title, {
+          duration: 1,
+          opacity: 0,
+          onComplete: () => {
+            title.innerText = "VICTORY\nENDLESS MODE\nUNLOCKED";
+            title.style.opacity = 1;
+          },
+        });
+      }, 3000);
     } else {
-    setTimeout(async function () {
-      title.innerText = "STAGE " + stageNum;
-      mainText.textContent = "START";
-      mainText.style.display = "inline-block";
-      let bElement = document.createElement("button");
-      bElement.textContent = "START";
-      bElement.id = mainText.id;
-      mainText.replaceWith(bElement);
-      mainText = bElement;
-      mainText.addEventListener(
-        "click",
-        () => {
-          gsap.to(mainText, {
-            opacity: 0,
-            duration: 1,
-            onComplete: () => {
-              let pElement = document.createElement("p");
-              pElement.id = mainText.id;
-              mainText.replaceWith(pElement);
-              mainText = pElement;
-              mainText.style.pointerEvents = "none";
-              mainText.style.userSelect = "none";
-            },
-          });
-          throwCards(cardAmt);
-          selectGuess();
-        },
-        { once: true },
-      );
-    }, 3000)}
+      setTimeout(async function () {
+        title.innerText = "STAGE " + stageNum;
+        mainText.textContent = "START";
+        mainText.style.display = "inline-block";
+        let bElement = document.createElement("button");
+        bElement.textContent = "START";
+        bElement.id = mainText.id;
+        mainText.replaceWith(bElement);
+        mainText = bElement;
+        mainText.addEventListener(
+          "click",
+          () => {
+            gsap.to(mainText, {
+              opacity: 0,
+              duration: 1,
+              onComplete: () => {
+                let pElement = document.createElement("p");
+                pElement.id = mainText.id;
+                mainText.replaceWith(pElement);
+                mainText = pElement;
+                mainText.style.pointerEvents = "none";
+                mainText.style.userSelect = "none";
+              },
+            });
+            throwCards(cardAmt);
+            selectGuess();
+          },
+          { once: true },
+        );
+      }, 3000);
+    }
   }
 }
 
