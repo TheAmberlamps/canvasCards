@@ -772,15 +772,24 @@ async function newGuess(card) {
     title.innerText = "CLEAR!";
     let checkVal = await deckCheck(newDeck);
     console.log(checkVal);
-    if (checkVal < 1) {
+    if (checkVal < 52) {
+      console.log(mainText)  
       console.log("This is the place for a victory!");
       setTimeout(async function () {
         gsap.to(title, {
           duration: 1,
           opacity: 0,
           onComplete: () => {
-            title.innerText = "VICTORY\nENDLESS MODE\nUNLOCKED";
+            title.innerText = "YOU WIN!\nENDLESS MODE\nUNLOCKED!";
             title.style.opacity = 1;
+            mainText.textContent = "BACK";
+            mainText.style.display = "inline-block";
+            let bElement = document.createElement("button");
+            bElement.textContent = mainText.textContent
+            bElement.id = mainText.id;
+            mainText.replaceWith(bElement);
+            mainText = bElement;
+            // needs an onClick element applied here to take you back to the main menu, along with proper styling; great progress so far though
           },
         });
       }, 3000);
