@@ -772,7 +772,7 @@ async function newGuess(card) {
     title.innerText = "CLEAR!";
     let checkVal = await deckCheck(newDeck);
     console.log(checkVal);
-    if (checkVal < 52) {
+    if (checkVal < 0) {
       console.log(mainText)  
       console.log("This is the place for a victory!");
       setTimeout(async function () {
@@ -780,7 +780,7 @@ async function newGuess(card) {
           duration: 1,
           opacity: 0,
           onComplete: () => {
-            title.innerText = "YOU WIN!\nENDLESS MODE\nUNLOCKED!";
+            title.innerText = "YOU WIN!\nCONGRATULATIONS!";
             title.style.opacity = 1;
             mainText.textContent = "BACK";
             mainText.style.display = "inline-block";
@@ -789,6 +789,9 @@ async function newGuess(card) {
             bElement.id = mainText.id;
             mainText.replaceWith(bElement);
             mainText = bElement;
+            mainText.addEventListener("click", () => {
+              gameReset()
+            })
             // needs an onClick element applied here to take you back to the main menu, along with proper styling; great progress so far though
           },
         });
@@ -907,13 +910,15 @@ async function gameReset() {
   title.innerText = gameTitle;
   guessInd = null;
   gameOn = false;
-  gsap.to(guessCard.valObj, {
-    xVal: screenWidth + guessCard.width,
-    duration: 1,
-    onComplete: () => {
-      guessCard = null;
-    },
-  });
+  if (guessCard) {
+    gsap.to(guessCard.valObj, {
+      xVal: screenWidth + guessCard.width,
+      duration: 1,
+      onComplete: () => {
+        guessCard = null;
+      },
+    });
+  }
   gsap.to(guessArea.valObj, {
     duration: 1,
     opacity: 0,
