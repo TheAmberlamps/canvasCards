@@ -203,7 +203,6 @@ function mouse_down(event) {
     for (let i = cardArr.length - 1; i > -1; i--) {
       if (inRotatedRect(event.clientX, event.clientY, cardArr[i])) {
         console.log("Yes!");
-        console.log(cardArr[i].valObj.cardVal);
         currentCard = cardArr[i];
         cardIndex = i;
         if (canDrag) {
@@ -212,7 +211,6 @@ function mouse_down(event) {
           currentCard.valObj.savedY = currentCard.valObj.yVal;
           console.log("Is dragging now true");
           unRot(currentCard);
-          console.log("guessVal:" + guessCard);
           break;
         } else {
           console.log("No!");
@@ -257,14 +255,13 @@ function mouse_up(event) {
     guessCard.valObj.flipping === false
   ) {
     console.log("card is located inside of guess area");
-    console.log(guessCard.valObj);
     evaluator();
   }
 }
 
 function mouse_move(event) {
+  event.preventDefault();
   if (is_dragging) {
-    event.preventDefault();
 
     let mouseX = event.clientX;
     let mouseY = event.clientY;
@@ -339,8 +336,6 @@ function mainFadeOut() {
     duration: 1,
   });
 }
-
-function mainFadeIn() {}
 
 function randOffset(offset) {
   if (Math.random() > 0.5) {
@@ -521,7 +516,7 @@ async function drawCards(newDeck) {
     let response = await fetch(drawCard);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     let data = await response.json();
-    console.log(data.cards[0]);
+    //console.log(data.cards[0]);
     return data.cards[0];
   } catch (error) {
     console.log("Fetch failed: ", error);
@@ -771,9 +766,9 @@ async function newGuess(card) {
     title.style.opacity = 1;
     title.innerText = "CLEAR!";
     let checkVal = await deckCheck(newDeck);
-    console.log(checkVal);
+    //console.log(checkVal);
     if (checkVal < 0) {
-      console.log(mainText)  
+      //console.log(mainText)  
       console.log("This is the place for a victory!");
       setTimeout(async function () {
         gsap.to(title, {
